@@ -7,7 +7,7 @@
 <meta name="description" content="Nadya Caldwell. Something new is on the way.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300;1,9..144,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Fraunces:opsz,wght@9..144,300;9..144,500&display=swap" rel="stylesheet">
 <style>
   :root {
     --sky: #BFDDF2;
@@ -45,20 +45,18 @@
   }
   h1 {
     margin: 0;
-    font-size: clamp(2.6rem, 9vw, 4.4rem);
-    font-weight: 300;
-    font-style: italic;
-    font-variation-settings: "opsz" 144, "SOFT" 100;
+    font-family: "Pinyon Script", cursive;
+    font-size: clamp(3.4rem, 12vw, 6rem);
+    font-weight: 400;
     line-height: 1;
-    letter-spacing: -0.01em;
     color: var(--ink);
   }
   .name {
-    margin: 1rem 0 0;
-    font-size: clamp(1.05rem, 2.4vw, 1.25rem);
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    color: var(--ink);
+    margin: 0.75rem 0 0;
+    font-family: "Pinyon Script", cursive;
+    font-size: clamp(1.9rem, 5vw, 2.6rem);
+    font-weight: 400;
+    color: #4C6C89;
   }
   .note {
     margin: 0.5rem 0 0;
@@ -73,14 +71,49 @@
     from { transform: rotate(-2.5deg); }
     to   { transform: rotate(2.5deg); }
   }
+  .cloud { animation: drift 28s ease-in-out infinite alternate; }
+  .cloud.b { animation-duration: 36s; animation-delay: -12s; }
+  .cloud.c { animation-duration: 32s; animation-delay: -20s; }
+  @keyframes drift {
+    from { transform: translateX(-14px); }
+    to   { transform: translateX(14px); }
+  }
+  .fly { animation: flutter 7s ease-in-out infinite alternate; }
+  .fly.b { animation-duration: 9s; animation-delay: -3s; }
+  .fly.c { animation-duration: 8s; animation-delay: -5s; }
+  @keyframes flutter {
+    0%   { transform: translate(0, 0); }
+    50%  { transform: translate(6px, -10px); }
+    100% { transform: translate(-4px, -4px); }
+  }
+  .wing-l { transform-origin: 0 0; animation: flapL 0.9s ease-in-out infinite alternate; }
+  .wing-r { transform-origin: 0 0; animation: flapR 0.9s ease-in-out infinite alternate; }
+  @keyframes flapL { from { transform: scaleX(1); } to { transform: scaleX(0.35); } }
+  @keyframes flapR { from { transform: scaleX(1); } to { transform: scaleX(0.35); } }
   @media (prefers-reduced-motion: reduce) {
-    .sway { animation: none; }
+    .sway, .cloud, .fly, .wing-l, .wing-r { animation: none; }
   }
 </style>
 </head>
 <body>
 <main>
-  <svg class="scene" viewBox="0 0 420 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A girl holding a bouquet, standing in a field of flowers">
+  <svg class="scene" viewBox="0 0 420 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A girl holding a bouquet in a field of flowers, with clouds and butterflies">
+    <!-- clouds -->
+    <g fill="#FFFFFF" opacity=".85">
+      <g class="cloud">
+        <ellipse cx="70" cy="60" rx="34" ry="14"/><circle cx="56" cy="52" r="16"/><circle cx="80" cy="48" r="20"/><circle cx="98" cy="58" r="13"/>
+      </g>
+      <g class="cloud b">
+        <ellipse cx="330" cy="40" rx="40" ry="15"/><circle cx="314" cy="32" r="17"/><circle cx="340" cy="26" r="22"/><circle cx="362" cy="36" r="14"/>
+      </g>
+      <g class="cloud c">
+        <ellipse cx="380" cy="120" rx="28" ry="11"/><circle cx="370" cy="113" r="13"/><circle cx="390" cy="108" r="16"/>
+      </g>
+      <g class="cloud b">
+        <ellipse cx="40" cy="150" rx="26" ry="10"/><circle cx="32" cy="144" r="12"/><circle cx="50" cy="140" r="14"/>
+      </g>
+    </g>
+
     <!-- ground -->
     <ellipse cx="210" cy="322" rx="200" ry="16" fill="var(--mist)"/>
     <ellipse cx="210" cy="318" rx="160" ry="10" fill="var(--leaf)" opacity=".55"/>
@@ -208,6 +241,24 @@
       <!-- hands over bouquet -->
       <circle cx="188" cy="262" r="8" fill="#8B5A3C"/>
       <circle cx="232" cy="262" r="8" fill="#8B5A3C"/>
+    </g>
+    <!-- butterflies -->
+    <g class="fly" transform="translate(118 150)">
+      <g class="wing-l"><path d="M0 0 C-14 -14 -24 -6 -18 6 C-22 14 -10 18 0 6 Z" fill="var(--petal)"/></g>
+      <g class="wing-r"><path d="M0 0 C14 -14 24 -6 18 6 C22 14 10 18 0 6 Z" fill="var(--petal)"/></g>
+      <line x1="0" y1="-4" x2="0" y2="9" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="-6" cy="4" r="2" fill="var(--bloom)"/><circle cx="6" cy="4" r="2" fill="var(--bloom)"/>
+    </g>
+    <g class="fly b" transform="translate(300 190)">
+      <g class="wing-l"><path d="M0 0 C-12 -12 -20 -5 -15 5 C-18 12 -8 15 0 5 Z" fill="var(--deep)"/></g>
+      <g class="wing-r"><path d="M0 0 C12 -12 20 -5 15 5 C18 12 8 15 0 5 Z" fill="var(--deep)"/></g>
+      <line x1="0" y1="-3" x2="0" y2="8" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="-5" cy="3" r="1.8" fill="var(--cream)"/><circle cx="5" cy="3" r="1.8" fill="var(--cream)"/>
+    </g>
+    <g class="fly c" transform="translate(270 90)">
+      <g class="wing-l"><path d="M0 0 C-9 -9 -15 -4 -11 4 C-13 9 -6 11 0 4 Z" fill="var(--bloom)"/></g>
+      <g class="wing-r"><path d="M0 0 C9 -9 15 -4 11 4 C13 9 6 11 0 4 Z" fill="var(--bloom)"/></g>
+      <line x1="0" y1="-2" x2="0" y2="6" stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round"/>
     </g>
   </svg>
 
