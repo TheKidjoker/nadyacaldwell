@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nadya Caldwell</title>
+<meta name="description" content="Nadya Caldwell. Something new is on the way.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #BFDDF2;
+    --mist: #E6F2FA;
+    --deep: #7FB3DC;
+    --petal: #F6CBD6;
+    --bloom: #FFE08A;
+    --leaf: #9CCB9B;
+    --ink: #2B4A66;
+    --cream: #FFF8F0;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--sky);
+    color: var(--ink);
+    font-family: "Fraunces", Georgia, serif;
+    display: grid;
+    place-items: center;
+    padding: 2rem 1.25rem;
+    min-height: 100dvh;
+    background-image:
+      radial-gradient(circle at 20% 15%, rgba(255,255,255,.55) 0, rgba(255,255,255,0) 28%),
+      radial-gradient(circle at 80% 85%, rgba(255,255,255,.4) 0, rgba(255,255,255,0) 32%);
+  }
+  main {
+    width: min(100%, 540px);
+    text-align: center;
+  }
+  .scene {
+    width: min(100%, 420px);
+    margin: 0 auto 1.75rem;
+    display: block;
+    overflow: visible;
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(2.6rem, 9vw, 4.4rem);
+    font-weight: 300;
+    font-style: italic;
+    font-variation-settings: "opsz" 144, "SOFT" 100;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .name {
+    margin: 1rem 0 0;
+    font-size: clamp(1.05rem, 2.4vw, 1.25rem);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+  }
+  .note {
+    margin: 0.5rem 0 0;
+    font-size: 1rem;
+    font-weight: 300;
+    color: #4C6C89;
+  }
+  .sway { transform-origin: bottom center; animation: sway 5s ease-in-out infinite alternate; }
+  .sway.b { animation-duration: 6.5s; animation-delay: -2s; }
+  .sway.c { animation-duration: 5.8s; animation-delay: -1s; }
+  @keyframes sway {
+    from { transform: rotate(-2.5deg); }
+    to   { transform: rotate(2.5deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sway { animation: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <svg class="scene" viewBox="0 0 420 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A girl holding a bouquet, standing in a field of flowers">
+    <!-- ground -->
+    <ellipse cx="210" cy="322" rx="200" ry="16" fill="var(--mist)"/>
+    <ellipse cx="210" cy="318" rx="160" ry="10" fill="var(--leaf)" opacity=".55"/>
+
+    <!-- background flowers left -->
+    <g class="sway b">
+      <path d="M62 316 C60 280 66 250 70 230" stroke="var(--leaf)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M66 280 C52 270 44 276 40 284 C52 286 62 284 66 280Z" fill="var(--leaf)"/>
+      <g transform="translate(70 224)">
+        <circle r="9" cy="-12" fill="var(--cream)"/><circle r="9" cx="11" cy="-4" fill="var(--cream)"/>
+        <circle r="9" cx="7" cy="9" fill="var(--cream)"/><circle r="9" cx="-7" cy="9" fill="var(--cream)"/>
+        <circle r="9" cx="-11" cy="-4" fill="var(--cream)"/><circle r="6" fill="var(--bloom)"/>
+      </g>
+    </g>
+    <g class="sway">
+      <path d="M110 320 C112 290 104 270 108 248" stroke="var(--leaf)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <g transform="translate(108 242)">
+        <circle r="8" cy="-10" fill="var(--petal)"/><circle r="8" cx="9" cy="-3" fill="var(--petal)"/>
+        <circle r="8" cx="6" cy="8" fill="var(--petal)"/><circle r="8" cx="-6" cy="8" fill="var(--petal)"/>
+        <circle r="8" cx="-9" cy="-3" fill="var(--petal)"/><circle r="5" fill="var(--bloom)"/>
+      </g>
+    </g>
+
+    <!-- background flowers right -->
+    <g class="sway c">
+      <path d="M356 318 C358 284 350 256 346 236" stroke="var(--leaf)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M352 284 C366 274 374 280 378 288 C366 290 356 288 352 284Z" fill="var(--leaf)"/>
+      <g transform="translate(346 230)">
+        <circle r="9" cy="-12" fill="var(--petal)"/><circle r="9" cx="11" cy="-4" fill="var(--petal)"/>
+        <circle r="9" cx="7" cy="9" fill="var(--petal)"/><circle r="9" cx="-7" cy="9" fill="var(--petal)"/>
+        <circle r="9" cx="-11" cy="-4" fill="var(--petal)"/><circle r="6" fill="var(--bloom)"/>
+      </g>
+    </g>
+    <g class="sway">
+      <path d="M310 320 C308 296 316 278 312 260" stroke="var(--leaf)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <g transform="translate(312 254)">
+        <circle r="7" cy="-9" fill="var(--cream)"/><circle r="7" cx="8" cy="-3" fill="var(--cream)"/>
+        <circle r="7" cx="5" cy="7" fill="var(--cream)"/><circle r="7" cx="-5" cy="7" fill="var(--cream)"/>
+        <circle r="7" cx="-8" cy="-3" fill="var(--cream)"/><circle r="4" fill="var(--bloom)"/>
+      </g>
+    </g>
+
+    <!-- small ground flowers -->
+    <g fill="var(--bloom)">
+      <circle cx="150" cy="312" r="4"/><circle cx="262" cy="314" r="4"/><circle cx="200" cy="322" r="3"/>
+      <circle cx="30" cy="316" r="3"/><circle cx="392" cy="314" r="3"/>
+    </g>
+    <g fill="var(--petal)">
+      <circle cx="176" cy="318" r="3"/><circle cx="238" cy="320" r="3"/><circle cx="88" cy="322" r="3"/><circle cx="332" cy="322" r="3"/>
+    </g>
+
+    <!-- girl -->
+    <g>
+      <!-- hair back -->
+      <path d="M170 128 C160 150 158 190 166 214 L254 214 C262 190 260 150 250 128 Z" fill="#5B3A2E"/>
+      <!-- dress -->
+      <path d="M180 190 L240 190 L256 300 L164 300 Z" fill="var(--cream)"/>
+      <path d="M164 300 L256 300 L258 306 L162 306 Z" fill="var(--deep)" opacity=".5"/>
+      <!-- dress dots -->
+      <g fill="var(--deep)" opacity=".6">
+        <circle cx="192" cy="222" r="2.5"/><circle cx="222" cy="236" r="2.5"/><circle cx="204" cy="258" r="2.5"/>
+        <circle cx="236" cy="272" r="2.5"/><circle cx="180" cy="276" r="2.5"/><circle cx="212" cy="290" r="2.5"/>
+      </g>
+      <!-- neck -->
+      <rect x="203" y="172" width="14" height="22" rx="6" fill="#F3C9A8"/>
+      <!-- arms -->
+      <path d="M182 200 C168 222 170 244 186 258" stroke="#F3C9A8" stroke-width="12" fill="none" stroke-linecap="round"/>
+      <path d="M238 200 C252 222 250 244 234 258" stroke="#F3C9A8" stroke-width="12" fill="none" stroke-linecap="round"/>
+      <!-- legs -->
+      <rect x="192" y="298" width="12" height="18" rx="5" fill="#F3C9A8"/>
+      <rect x="216" y="298" width="12" height="18" rx="5" fill="#F3C9A8"/>
+      <ellipse cx="198" cy="318" rx="10" ry="4" fill="var(--deep)"/>
+      <ellipse cx="222" cy="318" rx="10" ry="4" fill="var(--deep)"/>
+      <!-- face -->
+      <ellipse cx="210" cy="140" rx="40" ry="44" fill="#F3C9A8"/>
+      <!-- hair front -->
+      <path d="M170 132 C172 100 190 90 210 90 C230 90 248 100 250 132 C240 118 226 112 210 112 C194 112 180 118 170 132 Z" fill="#5B3A2E"/>
+      <!-- eyes -->
+      <path d="M192 146 q6 6 12 0" stroke="var(--ink)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M216 146 q6 6 12 0" stroke="var(--ink)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <!-- blush -->
+      <circle cx="188" cy="158" r="6" fill="var(--petal)" opacity=".9"/>
+      <circle cx="232" cy="158" r="6" fill="var(--petal)" opacity=".9"/>
+      <!-- smile -->
+      <path d="M202 166 q8 7 16 0" stroke="var(--ink)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <!-- hair flower -->
+      <g transform="translate(246 112)">
+        <circle r="5" cy="-6" fill="var(--petal)"/><circle r="5" cx="6" cy="-2" fill="var(--petal)"/>
+        <circle r="5" cx="4" cy="5" fill="var(--petal)"/><circle r="5" cx="-4" cy="5" fill="var(--petal)"/>
+        <circle r="5" cx="-6" cy="-2" fill="var(--petal)"/><circle r="3" fill="var(--bloom)"/>
+      </g>
+
+      <!-- bouquet held in front -->
+      <g transform="translate(210 240)">
+        <path d="M-6 30 L6 30 L4 12 L-4 12 Z" fill="var(--leaf)"/>
+        <path d="M-18 -4 C-16 8 -10 16 0 20 C10 16 16 8 18 -4" stroke="var(--leaf)" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M0 18 L-12 4 M0 18 L12 4 M0 18 L0 0" stroke="var(--leaf)" stroke-width="3" stroke-linecap="round"/>
+        <g transform="translate(-16 -4)">
+          <circle r="6" cy="-7" fill="var(--cream)"/><circle r="6" cx="7" cy="-2" fill="var(--cream)"/>
+          <circle r="6" cx="4" cy="6" fill="var(--cream)"/><circle r="6" cx="-4" cy="6" fill="var(--cream)"/>
+          <circle r="6" cx="-7" cy="-2" fill="var(--cream)"/><circle r="3.5" fill="var(--bloom)"/>
+        </g>
+        <g transform="translate(16 -4)">
+          <circle r="6" cy="-7" fill="var(--petal)"/><circle r="6" cx="7" cy="-2" fill="var(--petal)"/>
+          <circle r="6" cx="4" cy="6" fill="var(--petal)"/><circle r="6" cx="-4" cy="6" fill="var(--petal)"/>
+          <circle r="6" cx="-7" cy="-2" fill="var(--petal)"/><circle r="3.5" fill="var(--bloom)"/>
+        </g>
+        <g transform="translate(0 -14)">
+          <circle r="7" cy="-8" fill="var(--deep)"/><circle r="7" cx="8" cy="-2" fill="var(--deep)"/>
+          <circle r="7" cx="5" cy="7" fill="var(--deep)"/><circle r="7" cx="-5" cy="7" fill="var(--deep)"/>
+          <circle r="7" cx="-8" cy="-2" fill="var(--deep)"/><circle r="4" fill="var(--bloom)"/>
+        </g>
+        <circle cx="-8" cy="8" r="4" fill="var(--bloom)"/>
+        <circle cx="9" cy="9" r="4" fill="var(--bloom)"/>
+      </g>
+      <!-- hands over bouquet -->
+      <circle cx="188" cy="262" r="8" fill="#F3C9A8"/>
+      <circle cx="232" cy="262" r="8" fill="#F3C9A8"/>
+    </g>
+  </svg>
+
+  <h1>Coming soon</h1>
+  <p class="name">Nadya Caldwell</p>
+  <p class="note">Something lovely is on the way.</p>
+</main>
+</body>
+</html>
