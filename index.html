@@ -4,267 +4,359 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nadya Caldwell</title>
-<meta name="description" content="Nadya Caldwell. Something new is on the way.">
+<meta name="description" content="Nadya Caldwell. Something beautiful is on the way.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Fraunces:opsz,wght@9..144,300;9..144,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Jost:wght@200;300&display=swap" rel="stylesheet">
 <style>
   :root {
-    --sky: #BFDDF2;
-    --mist: #E6F2FA;
-    --deep: #7FB3DC;
-    --petal: #F6CBD6;
-    --bloom: #FFE08A;
-    --leaf: #9CCB9B;
-    --ink: #2B4A66;
-    --cream: #FFF8F0;
+    --sky-top: #8FBCE6;
+    --sky-mid: #C9E2F6;
+    --sky-low: #EAF3FB;
+    --ink: #5B7FB2;
+    --ink-deep: #3F6394;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; }
+  html, body { margin: 0; height: 100%; overflow: hidden; }
   body {
-    background: var(--sky);
+    background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 42%, var(--sky-low) 58%);
+    font-family: "Jost", system-ui, sans-serif;
     color: var(--ink);
-    font-family: "Fraunces", Georgia, serif;
-    display: grid;
-    place-items: center;
-    padding: 2rem 1.25rem;
-    min-height: 100dvh;
-    background-image:
-      radial-gradient(circle at 20% 15%, rgba(255,255,255,.55) 0, rgba(255,255,255,0) 28%),
-      radial-gradient(circle at 80% 85%, rgba(255,255,255,.4) 0, rgba(255,255,255,0) 32%);
   }
-  main {
-    width: min(100%, 540px);
-    text-align: center;
+  .stage { position: fixed; inset: 0; overflow: hidden; }
+  .layer { position: absolute; inset: 0; width: 100%; height: 100%; }
+  canvas.layer { display: block; }
+
+  .sun {
+    position: absolute; right: -12vmin; top: -14vmin;
+    width: 70vmin; height: 70vmin; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,.95) 0%, rgba(255,250,235,.7) 18%, rgba(255,255,255,.25) 42%, rgba(255,255,255,0) 70%);
+    pointer-events: none;
   }
-  .scene {
-    width: min(100%, 420px);
-    margin: 0 auto 1.75rem;
-    display: block;
-    overflow: visible;
+  .rays {
+    position: absolute; right: -30vmin; top: -40vmin; width: 120vmin; height: 120vmin;
+    background: conic-gradient(from 200deg at 50% 50%,
+      rgba(255,255,255,0) 0deg, rgba(255,255,255,.35) 6deg, rgba(255,255,255,0) 14deg,
+      rgba(255,255,255,0) 26deg, rgba(255,255,255,.28) 32deg, rgba(255,255,255,0) 40deg,
+      rgba(255,255,255,0) 54deg, rgba(255,255,255,.3) 60deg, rgba(255,255,255,0) 70deg,
+      rgba(255,255,255,0) 360deg);
+    filter: blur(14px);
+    animation: rays 40s linear infinite alternate;
+    pointer-events: none;
+  }
+  @keyframes rays { from { transform: rotate(0deg); } to { transform: rotate(8deg); } }
+
+  .veils { pointer-events: none; }
+  .veil { position: absolute; filter: blur(18px); opacity: .55; }
+  .veil svg { width: 100%; height: 100%; display: block; }
+  .veil.a { left: -10%; top: -10%; width: 90%; height: 70%; animation: veilA 26s ease-in-out infinite alternate; }
+  .veil.b { right: -15%; top: 5%; width: 80%; height: 65%; animation: veilB 32s ease-in-out infinite alternate; }
+  @keyframes veilA { from { transform: translate(0,0) rotate(0deg); } to { transform: translate(3%, 2%) rotate(1.5deg); } }
+  @keyframes veilB { from { transform: translate(0,0) rotate(0deg); } to { transform: translate(-3%, 3%) rotate(-1.5deg); } }
+
+  .florals { pointer-events: none; }
+  .florals svg { position: absolute; bottom: -2vh; height: 78vh; width: auto; overflow: visible; }
+  .florals svg.left  { left: -6vw; transform-origin: bottom left;  animation: swayL 9s ease-in-out infinite alternate; }
+  .florals svg.right { right: -6vw; transform: scaleX(-1); transform-origin: bottom right; animation: swayR 11s ease-in-out infinite alternate; }
+  @keyframes swayL { from { transform: rotate(-.6deg); } to { transform: rotate(.6deg); } }
+  @keyframes swayR { from { transform: scaleX(-1) rotate(.6deg); } to { transform: scaleX(-1) rotate(-.6deg); } }
+
+  .copy {
+    position: absolute; left: 50%; top: 44%;
+    transform: translate(-50%, -50%);
+    text-align: center; width: min(92vw, 900px);
+    pointer-events: none;
   }
   h1 {
     margin: 0;
-    font-family: "Pinyon Script", cursive;
-    font-size: clamp(3.4rem, 12vw, 6rem);
-    font-weight: 400;
-    line-height: 1;
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-weight: 300;
+    text-transform: uppercase;
+    font-size: clamp(3.2rem, 12.5vw, 9.5rem);
+    line-height: .86;
+    letter-spacing: .02em;
+    background: linear-gradient(180deg, #7E9FCC 0%, #4F73A6 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 2px 14px rgba(255,255,255,.65));
+  }
+  h1 span { display: block; }
+  .soon {
+    margin: 1.6rem 0 0;
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: .42em; text-indent: .42em;
+    font-size: clamp(1rem, 2.6vw, 1.8rem);
+    color: var(--ink-deep);
+  }
+  .tag {
+    margin: .6rem 0 0;
+    font-weight: 300;
+    letter-spacing: .16em; text-indent: .16em;
+    font-size: clamp(.8rem, 1.5vw, 1.05rem);
     color: var(--ink);
   }
-  .name {
-    margin: 0.75rem 0 0;
-    font-family: "Pinyon Script", cursive;
-    font-size: clamp(1.9rem, 5vw, 2.6rem);
-    font-weight: 400;
-    color: #4C6C89;
+  .corner {
+    position: absolute; top: 9vh;
+    font-size: .62rem; letter-spacing: .38em; text-transform: uppercase;
+    line-height: 1.9; color: rgba(63,99,148,.75); font-weight: 300;
+    pointer-events: none;
   }
-  .note {
-    margin: 0.5rem 0 0;
-    font-size: 1rem;
-    font-weight: 300;
-    color: #4C6C89;
+  .corner.l { left: 5.5vw; text-align: left; }
+  .corner.r { right: 5.5vw; text-align: right; }
+  .corner::after { content: ""; display: block; width: 3.5rem; height: 1px; background: rgba(63,99,148,.35); margin-top: .6rem; }
+  .corner.r::after { margin-left: auto; }
+  @media (max-width: 640px) {
+    .corner { display: none; }
+    .florals svg { height: 58vh; }
+    .copy { top: 40%; }
   }
-  .sway { transform-origin: bottom center; animation: sway 5s ease-in-out infinite alternate; }
-  .sway.b { animation-duration: 6.5s; animation-delay: -2s; }
-  .sway.c { animation-duration: 5.8s; animation-delay: -1s; }
-  @keyframes sway {
-    from { transform: rotate(-2.5deg); }
-    to   { transform: rotate(2.5deg); }
-  }
-  .cloud { animation: drift 28s ease-in-out infinite alternate; }
-  .cloud.b { animation-duration: 36s; animation-delay: -12s; }
-  .cloud.c { animation-duration: 32s; animation-delay: -20s; }
-  @keyframes drift {
-    from { transform: translateX(-14px); }
-    to   { transform: translateX(14px); }
-  }
-  .fly { animation: flutter 7s ease-in-out infinite alternate; }
-  .fly.b { animation-duration: 9s; animation-delay: -3s; }
-  .fly.c { animation-duration: 8s; animation-delay: -5s; }
-  @keyframes flutter {
-    0%   { transform: translate(0, 0); }
-    50%  { transform: translate(6px, -10px); }
-    100% { transform: translate(-4px, -4px); }
-  }
-  .wing-l { transform-origin: 0 0; animation: flapL 0.9s ease-in-out infinite alternate; }
-  .wing-r { transform-origin: 0 0; animation: flapR 0.9s ease-in-out infinite alternate; }
-  @keyframes flapL { from { transform: scaleX(1); } to { transform: scaleX(0.35); } }
-  @keyframes flapR { from { transform: scaleX(1); } to { transform: scaleX(0.35); } }
   @media (prefers-reduced-motion: reduce) {
-    .sway, .cloud, .fly, .wing-l, .wing-r { animation: none; }
+    .rays, .veil, .florals svg { animation: none; }
   }
 </style>
 </head>
 <body>
-<main>
-  <svg class="scene" viewBox="0 0 420 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A girl holding a bouquet in a field of flowers, with clouds and butterflies">
-    <!-- clouds -->
-    <g fill="#FFFFFF" opacity=".85">
-      <g class="cloud">
-        <ellipse cx="70" cy="60" rx="34" ry="14"/><circle cx="56" cy="52" r="16"/><circle cx="80" cy="48" r="20"/><circle cx="98" cy="58" r="13"/>
-      </g>
-      <g class="cloud b">
-        <ellipse cx="330" cy="40" rx="40" ry="15"/><circle cx="314" cy="32" r="17"/><circle cx="340" cy="26" r="22"/><circle cx="362" cy="36" r="14"/>
-      </g>
-      <g class="cloud c">
-        <ellipse cx="380" cy="120" rx="28" ry="11"/><circle cx="370" cy="113" r="13"/><circle cx="390" cy="108" r="16"/>
-      </g>
-      <g class="cloud b">
-        <ellipse cx="40" cy="150" rx="26" ry="10"/><circle cx="32" cy="144" r="12"/><circle cx="50" cy="140" r="14"/>
-      </g>
-    </g>
+<div class="stage" aria-hidden="true">
+  <canvas id="sky" class="layer"></canvas>
+  <div class="sun"></div>
+  <div class="rays"></div>
+  <canvas id="sea" class="layer"></canvas>
+  <div class="layer veils">
+    <div class="veil a"><svg viewBox="0 0 800 500" preserveAspectRatio="none"><path d="M0 120 C200 40 380 60 520 160 C640 240 760 220 800 140 L800 0 L0 0 Z" fill="#fff"/><path d="M0 300 C160 220 330 260 470 340 C600 410 720 380 800 300 L800 500 L0 500 Z" fill="#fff" opacity=".6"/></svg></div>
+    <div class="veil b"><svg viewBox="0 0 800 500" preserveAspectRatio="none"><path d="M0 60 C180 160 340 100 500 40 C640 -10 740 40 800 100 L800 0 L0 0 Z" fill="#fff"/><path d="M0 420 C200 320 420 380 600 300 C700 260 760 280 800 330 L800 500 L0 500 Z" fill="#fff" opacity=".5"/></svg></div>
+  </div>
+  <div class="layer florals">
+    <svg id="floralL" class="left" viewBox="0 0 520 780"></svg>
+    <svg id="floralR" class="right" viewBox="0 0 520 780"></svg>
+  </div>
+</div>
 
-    <!-- ground -->
-    <ellipse cx="210" cy="322" rx="200" ry="16" fill="var(--mist)"/>
-    <ellipse cx="210" cy="318" rx="160" ry="10" fill="var(--leaf)" opacity=".55"/>
+<div class="corner l">Dream<br>Create<br>Grow<br>Belong</div>
+<div class="corner r">A brighter<br>chapter ahead</div>
 
-    <!-- background flowers left -->
-    <g class="sway b">
-      <path d="M62 316 C60 280 66 250 70 230" stroke="var(--leaf)" stroke-width="3" fill="none" stroke-linecap="round"/>
-      <path d="M66 280 C52 270 44 276 40 284 C52 286 62 284 66 280Z" fill="var(--leaf)"/>
-      <g transform="translate(70 224)">
-        <circle r="9" cy="-12" fill="var(--cream)"/><circle r="9" cx="11" cy="-4" fill="var(--cream)"/>
-        <circle r="9" cx="7" cy="9" fill="var(--cream)"/><circle r="9" cx="-7" cy="9" fill="var(--cream)"/>
-        <circle r="9" cx="-11" cy="-4" fill="var(--cream)"/><circle r="6" fill="var(--bloom)"/>
-      </g>
-    </g>
-    <g class="sway">
-      <path d="M110 320 C112 290 104 270 108 248" stroke="var(--leaf)" stroke-width="3" fill="none" stroke-linecap="round"/>
-      <g transform="translate(108 242)">
-        <circle r="8" cy="-10" fill="var(--petal)"/><circle r="8" cx="9" cy="-3" fill="var(--petal)"/>
-        <circle r="8" cx="6" cy="8" fill="var(--petal)"/><circle r="8" cx="-6" cy="8" fill="var(--petal)"/>
-        <circle r="8" cx="-9" cy="-3" fill="var(--petal)"/><circle r="5" fill="var(--bloom)"/>
-      </g>
-    </g>
-
-    <!-- background flowers right -->
-    <g class="sway c">
-      <path d="M356 318 C358 284 350 256 346 236" stroke="var(--leaf)" stroke-width="3" fill="none" stroke-linecap="round"/>
-      <path d="M352 284 C366 274 374 280 378 288 C366 290 356 288 352 284Z" fill="var(--leaf)"/>
-      <g transform="translate(346 230)">
-        <circle r="9" cy="-12" fill="var(--petal)"/><circle r="9" cx="11" cy="-4" fill="var(--petal)"/>
-        <circle r="9" cx="7" cy="9" fill="var(--petal)"/><circle r="9" cx="-7" cy="9" fill="var(--petal)"/>
-        <circle r="9" cx="-11" cy="-4" fill="var(--petal)"/><circle r="6" fill="var(--bloom)"/>
-      </g>
-    </g>
-    <g class="sway">
-      <path d="M310 320 C308 296 316 278 312 260" stroke="var(--leaf)" stroke-width="3" fill="none" stroke-linecap="round"/>
-      <g transform="translate(312 254)">
-        <circle r="7" cy="-9" fill="var(--cream)"/><circle r="7" cx="8" cy="-3" fill="var(--cream)"/>
-        <circle r="7" cx="5" cy="7" fill="var(--cream)"/><circle r="7" cx="-5" cy="7" fill="var(--cream)"/>
-        <circle r="7" cx="-8" cy="-3" fill="var(--cream)"/><circle r="4" fill="var(--bloom)"/>
-      </g>
-    </g>
-
-    <!-- small ground flowers -->
-    <g fill="var(--bloom)">
-      <circle cx="150" cy="312" r="4"/><circle cx="262" cy="314" r="4"/><circle cx="200" cy="322" r="3"/>
-      <circle cx="30" cy="316" r="3"/><circle cx="392" cy="314" r="3"/>
-    </g>
-    <g fill="var(--petal)">
-      <circle cx="176" cy="318" r="3"/><circle cx="238" cy="320" r="3"/><circle cx="88" cy="322" r="3"/><circle cx="332" cy="322" r="3"/>
-    </g>
-
-    <!-- girl -->
-    <g>
-      <!-- hair back -->
-      <g fill="#1F1410">
-        <circle cx="168" cy="130" r="18"/><circle cx="252" cy="130" r="18"/>
-        <circle cx="160" cy="160" r="20"/><circle cx="260" cy="160" r="20"/>
-        <circle cx="166" cy="192" r="18"/><circle cx="254" cy="192" r="18"/>
-        <circle cx="210" cy="96" r="30"/><circle cx="184" cy="100" r="24"/><circle cx="236" cy="100" r="24"/>
-        <rect x="160" y="130" width="100" height="80" rx="30"/>
-      </g>
-      <!-- dress -->
-      <path d="M180 190 L240 190 L256 300 L164 300 Z" fill="var(--cream)"/>
-      <path d="M164 300 L256 300 L258 306 L162 306 Z" fill="var(--deep)" opacity=".5"/>
-      <!-- dress dots -->
-      <g fill="var(--deep)" opacity=".6">
-        <circle cx="192" cy="222" r="2.5"/><circle cx="222" cy="236" r="2.5"/><circle cx="204" cy="258" r="2.5"/>
-        <circle cx="236" cy="272" r="2.5"/><circle cx="180" cy="276" r="2.5"/><circle cx="212" cy="290" r="2.5"/>
-      </g>
-      <!-- neck -->
-      <rect x="203" y="172" width="14" height="22" rx="6" fill="#8B5A3C"/>
-      <!-- arms -->
-      <path d="M182 200 C168 222 170 244 186 258" stroke="#8B5A3C" stroke-width="12" fill="none" stroke-linecap="round"/>
-      <path d="M238 200 C252 222 250 244 234 258" stroke="#8B5A3C" stroke-width="12" fill="none" stroke-linecap="round"/>
-      <!-- legs -->
-      <rect x="192" y="298" width="12" height="18" rx="5" fill="#8B5A3C"/>
-      <rect x="216" y="298" width="12" height="18" rx="5" fill="#8B5A3C"/>
-      <ellipse cx="198" cy="318" rx="10" ry="4" fill="var(--deep)"/>
-      <ellipse cx="222" cy="318" rx="10" ry="4" fill="var(--deep)"/>
-      <!-- face -->
-      <ellipse cx="210" cy="140" rx="40" ry="44" fill="#8B5A3C"/>
-      <!-- hair front -->
-      <g fill="#1F1410">
-        <circle cx="180" cy="112" r="16"/><circle cx="198" cy="102" r="17"/><circle cx="222" cy="102" r="17"/>
-        <circle cx="240" cy="112" r="16"/><circle cx="210" cy="98" r="18"/>
-      </g>
-      <!-- eyes -->
-      <path d="M192 146 q6 6 12 0" stroke="var(--ink)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-      <path d="M216 146 q6 6 12 0" stroke="var(--ink)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-      <!-- blush -->
-      <circle cx="188" cy="158" r="6" fill="#D98A8A" opacity=".75"/>
-      <circle cx="232" cy="158" r="6" fill="#D98A8A" opacity=".75"/>
-      <!-- smile -->
-      <path d="M202 166 q8 7 16 0" stroke="var(--ink)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-      <!-- hair flower -->
-      <g transform="translate(246 112)">
-        <circle r="5" cy="-6" fill="var(--petal)"/><circle r="5" cx="6" cy="-2" fill="var(--petal)"/>
-        <circle r="5" cx="4" cy="5" fill="var(--petal)"/><circle r="5" cx="-4" cy="5" fill="var(--petal)"/>
-        <circle r="5" cx="-6" cy="-2" fill="var(--petal)"/><circle r="3" fill="var(--bloom)"/>
-      </g>
-
-      <!-- bouquet held in front -->
-      <g transform="translate(210 240)">
-        <path d="M-6 30 L6 30 L4 12 L-4 12 Z" fill="var(--leaf)"/>
-        <path d="M-18 -4 C-16 8 -10 16 0 20 C10 16 16 8 18 -4" stroke="var(--leaf)" stroke-width="4" fill="none" stroke-linecap="round"/>
-        <path d="M0 18 L-12 4 M0 18 L12 4 M0 18 L0 0" stroke="var(--leaf)" stroke-width="3" stroke-linecap="round"/>
-        <g transform="translate(-16 -4)">
-          <circle r="6" cy="-7" fill="var(--cream)"/><circle r="6" cx="7" cy="-2" fill="var(--cream)"/>
-          <circle r="6" cx="4" cy="6" fill="var(--cream)"/><circle r="6" cx="-4" cy="6" fill="var(--cream)"/>
-          <circle r="6" cx="-7" cy="-2" fill="var(--cream)"/><circle r="3.5" fill="var(--bloom)"/>
-        </g>
-        <g transform="translate(16 -4)">
-          <circle r="6" cy="-7" fill="var(--petal)"/><circle r="6" cx="7" cy="-2" fill="var(--petal)"/>
-          <circle r="6" cx="4" cy="6" fill="var(--petal)"/><circle r="6" cx="-4" cy="6" fill="var(--petal)"/>
-          <circle r="6" cx="-7" cy="-2" fill="var(--petal)"/><circle r="3.5" fill="var(--bloom)"/>
-        </g>
-        <g transform="translate(0 -14)">
-          <circle r="7" cy="-8" fill="var(--deep)"/><circle r="7" cx="8" cy="-2" fill="var(--deep)"/>
-          <circle r="7" cx="5" cy="7" fill="var(--deep)"/><circle r="7" cx="-5" cy="7" fill="var(--deep)"/>
-          <circle r="7" cx="-8" cy="-2" fill="var(--deep)"/><circle r="4" fill="var(--bloom)"/>
-        </g>
-        <circle cx="-8" cy="8" r="4" fill="var(--bloom)"/>
-        <circle cx="9" cy="9" r="4" fill="var(--bloom)"/>
-      </g>
-      <!-- hands over bouquet -->
-      <circle cx="188" cy="262" r="8" fill="#8B5A3C"/>
-      <circle cx="232" cy="262" r="8" fill="#8B5A3C"/>
-    </g>
-    <!-- butterflies -->
-    <g class="fly" transform="translate(118 150)">
-      <g class="wing-l"><path d="M0 0 C-14 -14 -24 -6 -18 6 C-22 14 -10 18 0 6 Z" fill="var(--petal)"/></g>
-      <g class="wing-r"><path d="M0 0 C14 -14 24 -6 18 6 C22 14 10 18 0 6 Z" fill="var(--petal)"/></g>
-      <line x1="0" y1="-4" x2="0" y2="9" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/>
-      <circle cx="-6" cy="4" r="2" fill="var(--bloom)"/><circle cx="6" cy="4" r="2" fill="var(--bloom)"/>
-    </g>
-    <g class="fly b" transform="translate(300 190)">
-      <g class="wing-l"><path d="M0 0 C-12 -12 -20 -5 -15 5 C-18 12 -8 15 0 5 Z" fill="var(--deep)"/></g>
-      <g class="wing-r"><path d="M0 0 C12 -12 20 -5 15 5 C18 12 8 15 0 5 Z" fill="var(--deep)"/></g>
-      <line x1="0" y1="-3" x2="0" y2="8" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/>
-      <circle cx="-5" cy="3" r="1.8" fill="var(--cream)"/><circle cx="5" cy="3" r="1.8" fill="var(--cream)"/>
-    </g>
-    <g class="fly c" transform="translate(270 90)">
-      <g class="wing-l"><path d="M0 0 C-9 -9 -15 -4 -11 4 C-13 9 -6 11 0 4 Z" fill="var(--bloom)"/></g>
-      <g class="wing-r"><path d="M0 0 C9 -9 15 -4 11 4 C13 9 6 11 0 4 Z" fill="var(--bloom)"/></g>
-      <line x1="0" y1="-2" x2="0" y2="6" stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round"/>
-    </g>
-  </svg>
-
-  <h1>Coming soon</h1>
-  <p class="name">Nadya Caldwell</p>
-  <p class="note">Something lovely is on the way.</p>
+<main class="copy">
+  <h1><span>Nadya</span><span>Caldwell</span></h1>
+  <p class="soon">Coming soon</p>
+  <p class="tag">Something beautiful is on the way.</p>
 </main>
+
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const DPR = Math.min(devicePixelRatio || 1, 1.5);
+
+  let seed = 7;
+  const rand = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+
+  /* ---------- SKY: drifting bokeh ---------- */
+  const sky = document.getElementById('sky');
+  const sctx = sky.getContext('2d');
+  let bokeh = [];
+  function buildBokeh(w, h) {
+    bokeh = [];
+    for (let i = 0; i < 70; i++) {
+      bokeh.push({ x: rand() * w, y: rand() * h * .7, r: 2 + rand() * 9, a: .15 + rand() * .45, s: .05 + rand() * .2, p: rand() * 6.28 });
+    }
+  }
+  function drawSky(t) {
+    const w = sky.width, h = sky.height;
+    sctx.clearRect(0, 0, w, h);
+    const g = sctx.createLinearGradient(0, h * .42, 0, h * .62);
+    g.addColorStop(0, 'rgba(255,255,255,0)');
+    g.addColorStop(.6, 'rgba(255,255,255,.55)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    sctx.fillStyle = g; sctx.fillRect(0, h * .4, w, h * .25);
+    for (const b of bokeh) {
+      const tw = .6 + .4 * Math.sin(t * b.s + b.p);
+      const x = (b.x + t * 4 * b.s) % (w + 40) - 20;
+      const rg = sctx.createRadialGradient(x, b.y, 0, x, b.y, b.r * DPR);
+      rg.addColorStop(0, `rgba(255,255,255,${b.a * tw})`);
+      rg.addColorStop(1, 'rgba(255,255,255,0)');
+      sctx.fillStyle = rg;
+      sctx.beginPath(); sctx.arc(x, b.y, b.r * DPR, 0, 6.28); sctx.fill();
+    }
+  }
+
+  /* ---------- SEA: perspective glitter + coastline ---------- */
+  const sea = document.getElementById('sea');
+  const ctx = sea.getContext('2d');
+  let cells = [];
+  let rows = 0, cols = 0;
+  let coast = null;
+
+  function buildSea(w, h) {
+    rows = 70; cols = 150;
+    cells = new Float32Array(rows * cols * 3);
+    for (let i = 0; i < rows * cols; i++) {
+      cells[i * 3] = rand() * 6.28;
+      cells[i * 3 + 1] = .6 + rand() * 1.2;
+      cells[i * 3 + 2] = rand();
+    }
+    coast = document.createElement('canvas');
+    coast.width = w; coast.height = h;
+    const c = coast.getContext('2d');
+    const hz = h * .565;
+    c.fillStyle = '#9FBFDF';
+    c.beginPath();
+    c.moveTo(w * .62, hz + 2);
+    c.lineTo(w * .66, hz - h * .035);
+    c.lineTo(w * .72, hz - h * .05);
+    c.lineTo(w * .78, hz - h * .03);
+    c.lineTo(w * .84, hz - h * .07);
+    c.lineTo(w * .9, hz - h * .045);
+    c.lineTo(w * 1.02, hz - h * .08);
+    c.lineTo(w * 1.02, hz + 2);
+    c.closePath(); c.fill();
+    c.fillStyle = '#B7D1EA';
+    c.beginPath();
+    c.moveTo(w * .7, hz + 2); c.lineTo(w * .75, hz - h * .02); c.lineTo(w * .82, hz - h * .012); c.lineTo(w * .9, hz - h * .03); c.lineTo(w * 1.02, hz - h * .02); c.lineTo(w * 1.02, hz + 2); c.closePath(); c.fill();
+    c.fillStyle = 'rgba(255,255,255,.85)';
+    for (let i = 0; i < 40; i++) { c.fillRect(w * (.7 + rand() * .3), hz - 2 - rand() * h * .02, 2 * DPR, 2 * DPR); }
+  }
+
+  function drawSea(t) {
+    const w = sea.width, h = sea.height;
+    const hz = h * .565;
+    ctx.clearRect(0, 0, w, h);
+    const g = ctx.createLinearGradient(0, hz, 0, h);
+    g.addColorStop(0, '#CFE6F5');
+    g.addColorStop(.12, '#8DBCE0');
+    g.addColorStop(.5, '#5C97CF');
+    g.addColorStop(1, '#3E7BB8');
+    ctx.fillStyle = g; ctx.fillRect(0, hz, w, h - hz);
+    ctx.drawImage(coast, 0, 0);
+
+    const sunX = w * .56;
+    ctx.globalCompositeOperation = 'lighter';
+    for (let r = 0; r < rows; r++) {
+      const d = r / (rows - 1);
+      const dp = Math.pow(d, 1.7);
+      const y = hz + dp * (h - hz);
+      const cw = (w / cols) * (0.35 + dp * 1.6);
+      const ch = (1 + dp * 4) * DPR;
+      const ncols = Math.ceil(w / cw) + 2;
+      const drift = t * (6 + dp * 30) * DPR;
+      for (let cI = 0; cI < ncols; cI++) {
+        const idx = ((r * cols) + (cI % cols)) * 3;
+        const ph = cells[idx], sp = cells[idx + 1], bias = cells[idx + 2];
+        const x = ((cI * cw + drift) % (w + cw * 2)) - cw;
+        const s = Math.sin(t * sp * 2.2 + ph + x * .004 / DPR) * Math.cos(t * sp * .9 - ph * 2 + r * .3);
+        let br = (s + 1) * .5 * (0.4 + bias * .6);
+        const sun = Math.exp(-Math.pow((x - sunX) / (w * (.05 + dp * .12)), 2));
+        br = br * (0.15 + 0.85 * sun) + sun * .08;
+        if (br < .38) continue;
+        const a = Math.min(1, (br - .38) * 1.7) * (0.55 + dp * .35);
+        ctx.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`;
+        ctx.beginPath();
+        ctx.ellipse(x + cw * .5, y, cw * (.25 + bias * .3), ch * .5, 0, 0, 6.28);
+        ctx.fill();
+      }
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    const hg = ctx.createLinearGradient(0, hz - 8 * DPR, 0, hz + 30 * DPR);
+    hg.addColorStop(0, 'rgba(234,243,251,1)');
+    hg.addColorStop(1, 'rgba(234,243,251,0)');
+    ctx.fillStyle = hg; ctx.fillRect(0, hz - 8 * DPR, w, 40 * DPR);
+    const vg = ctx.createLinearGradient(0, h * .85, 0, h);
+    vg.addColorStop(0, 'rgba(255,255,255,0)'); vg.addColorStop(1, 'rgba(255,255,255,.35)');
+    ctx.fillStyle = vg; ctx.fillRect(0, h * .85, w, h * .15);
+  }
+
+  /* ---------- FLORALS: generated SVG clusters ---------- */
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (n, a = {}) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+
+  function flower(g, x, y, r, blue) {
+    const f = el('g', { transform: `translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${(rand() * 360).toFixed(0)})` });
+    const petal = blue ? '#8FB7EA' : '#FFFFFF';
+    const petalShade = blue ? '#6F9BD8' : '#E4EEF8';
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * 360;
+      f.appendChild(el('ellipse', { cx: 0, cy: -r * .62, rx: r * .42, ry: r * .62, fill: petal, transform: `rotate(${a})` }));
+      f.appendChild(el('ellipse', { cx: 0, cy: -r * .5, rx: r * .18, ry: r * .34, fill: petalShade, opacity: .55, transform: `rotate(${a})` }));
+    }
+    f.appendChild(el('circle', { r: r * .26, fill: blue ? '#FFF3B8' : '#F7DC7A' }));
+    f.appendChild(el('circle', { r: r * .12, fill: blue ? '#E8C85C' : '#D9B850', cx: r * .05, cy: -r * .05 }));
+    g.appendChild(f);
+  }
+
+  function branch(g, x0, y0, x1, y1, x2, y2, count, size, blueChance) {
+    g.appendChild(el('path', { d: `M${x0} ${y0} Q${x1} ${y1} ${x2} ${y2}`, stroke: '#6E8C62', 'stroke-width': 3, fill: 'none', 'stroke-linecap': 'round' }));
+    for (let i = 0; i < count; i++) {
+      const t = .15 + rand() * .85;
+      const px = (1 - t) * (1 - t) * x0 + 2 * (1 - t) * t * x1 + t * t * x2;
+      const py = (1 - t) * (1 - t) * y0 + 2 * (1 - t) * t * y1 + t * t * y2;
+      const ox = (rand() - .5) * 46, oy = (rand() - .5) * 46;
+      if (rand() < .35) {
+        g.appendChild(el('ellipse', { cx: px + ox, cy: py + oy, rx: 5, ry: 12, fill: rand() < .5 ? '#7FA37E' : '#5C8060', transform: `rotate(${(rand() * 360).toFixed(0)} ${px + ox} ${py + oy})` }));
+      }
+      flower(g, px + ox, py + oy, size * (.65 + rand() * .7), rand() < blueChance);
+    }
+  }
+
+  function ribbon(g, pts, w) {
+    const grad = el('linearGradient', { id: 'rb' + Math.floor(rand() * 1e6), x1: 0, y1: 0, x2: 0, y2: 1 });
+    grad.appendChild(el('stop', { offset: 0, 'stop-color': '#D6E6F8' }));
+    grad.appendChild(el('stop', { offset: .45, 'stop-color': '#A9C8EC' }));
+    grad.appendChild(el('stop', { offset: 1, 'stop-color': '#7FA5D6' }));
+    g.appendChild(grad);
+    g.appendChild(el('path', { d: pts, stroke: `url(#${grad.id})`, 'stroke-width': w, fill: 'none', 'stroke-linecap': 'round' }));
+    g.appendChild(el('path', { d: pts, stroke: 'rgba(255,255,255,.55)', 'stroke-width': w * .3, fill: 'none', 'stroke-linecap': 'round', transform: 'translate(0 -' + (w * .22).toFixed(0) + ')' }));
+  }
+
+  function orb(g, x, y, r) {
+    const id = 'ob' + Math.floor(rand() * 1e6);
+    const rg = el('radialGradient', { id, cx: .35, cy: .3, r: .8 });
+    rg.appendChild(el('stop', { offset: 0, 'stop-color': '#FFFFFF' }));
+    rg.appendChild(el('stop', { offset: .55, 'stop-color': '#D8E9F8', 'stop-opacity': .7 }));
+    rg.appendChild(el('stop', { offset: 1, 'stop-color': '#7FA5D6', 'stop-opacity': .85 }));
+    g.appendChild(rg);
+    g.appendChild(el('circle', { cx: x, cy: y, r, fill: `url(#${id})` }));
+    g.appendChild(el('circle', { cx: x - r * .35, cy: y - r * .38, r: r * .22, fill: '#FFFFFF', opacity: .95 }));
+    g.appendChild(el('ellipse', { cx: x + r * .25, cy: y + r * .55, rx: r * .35, ry: r * .12, fill: '#FFFFFF', opacity: .5 }));
+  }
+
+  function buildFloral(svg) {
+    svg.innerHTML = '';
+    const g = el('g');
+    g.appendChild(el('path', { d: 'M-40 620 L250 640 L260 780 L-40 780 Z', fill: '#E6DFD2' }));
+    g.appendChild(el('path', { d: 'M-40 620 L250 640 L245 660 L-40 640 Z', fill: '#F4EFE6' }));
+    branch(g, 120, 700, 60, 420, 110, 150, 16, 15, .28);
+    branch(g, 40, 720, 20, 480, 70, 280, 13, 14, .22);
+    branch(g, 160, 700, 240, 440, 200, 190, 15, 15, .32);
+    ribbon(g, 'M-30 480 C120 430 60 560 220 520 C330 495 250 640 380 700', 34);
+    branch(g, 70, 760, 150, 560, 260, 420, 22, 18, .3);
+    branch(g, 0, 760, 90, 620, 170, 500, 18, 17, .35);
+    branch(g, 200, 780, 300, 640, 360, 560, 20, 17, .25);
+    branch(g, 20, 780, 40, 700, 120, 690, 14, 16, .4);
+    ribbon(g, 'M60 620 C160 560 260 700 340 660 C420 620 380 760 480 780', 30);
+    orb(g, 300, 720, 30);
+    orb(g, 360, 752, 18);
+    orb(g, 232, 748, 12);
+    svg.appendChild(g);
+  }
+
+  function resize() {
+    const w = innerWidth, h = innerHeight;
+    for (const c of [sky, sea]) { c.width = w * DPR; c.height = h * DPR; }
+    seed = 7;
+    buildBokeh(sky.width, sky.height);
+    buildSea(sea.width, sea.height);
+    seed = 99; buildFloral(document.getElementById('floralL'));
+    seed = 173; buildFloral(document.getElementById('floralR'));
+    drawSky(0); drawSea(0);
+  }
+  let start = performance.now();
+  function loop(now) {
+    const t = (now - start) / 1000;
+    drawSky(t);
+    drawSea(t);
+    requestAnimationFrame(loop);
+  }
+  addEventListener('resize', resize, { passive: true });
+  resize();
+  if (!reduce) requestAnimationFrame(loop);
+})();
+</script>
 </body>
 </html>
