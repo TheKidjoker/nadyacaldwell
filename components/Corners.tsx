@@ -1,0 +1,21 @@
+import styles from "@/app/scene.module.css";
+
+export function Corners() {
+  return (
+    <div className={styles.corners}>
+      <p className={styles.cornerLeft}>
+        <span>Dream</span>
+        <span>Create</span>
+        <span>Grow</span>
+        <span>Belong</span>
+      </p>
+
+      <p className={styles.cornerRight}>
+        <span>A brighter</span>
+        <span>chapter ahead</span>
+      </p>
+
+      <p className={styles.script}>More Beautiful Things Ahead</p>
+    </div>
+  );
+}

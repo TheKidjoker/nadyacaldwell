@@ -1,0 +1,86 @@
+:root {
+  /* Sky */
+  --sky-zenith: #7fb0dc;
+  --sky-upper: #9ac5e7;
+  --sky-mid: #bedcf2;
+  --sky-low: #dceefb;
+  --horizon: #f4fafd;
+
+  /* Light */
+  --sun-core: #fffdf6;
+  --sun-warm: #ffeecd;
+
+  /* Water */
+  --sea-far: #cadff0;
+  --sea-mid: #93bee0;
+  --sea-near: #6ba1cd;
+
+  /* Ink — muted slate blue */
+  --ink: #3e5a79;
+  --ink-body: #35526f;
+  --ink-soft: #5f7d9d;
+  --ink-faint: #7e9cb8;
+
+  --pearl: #f8fbfe;
+
+  /* Horizon sits here; everything else is measured from it. */
+  --horizon-line: 56%;
+
+  --ease-soft: cubic-bezier(0.33, 0.1, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  background: var(--sky-mid);
+}
+
+html {
+  /* Fallback first, then the dynamic unit for mobile browser chrome. */
+  height: 100%;
+  height: 100dvh;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  color: var(--ink-body);
+  font-family: var(--font-sans), "Segoe UI", system-ui, sans-serif;
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+h1,
+p {
+  margin: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    animation-delay: 0ms !important;
+  }
+}
