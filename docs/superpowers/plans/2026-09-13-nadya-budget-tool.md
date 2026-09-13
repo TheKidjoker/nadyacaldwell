@@ -14,7 +14,7 @@
 
 - **All money is integer cents.** Never a float, never a `number` holding dollars. Column type `integer`. Any function taking or returning money uses a name ending in `Cents`.
 - **All calendar dates are `'YYYY-MM-DD'` strings**, never JS `Date` objects, in the database (`date` columns) and throughout `lib/budget/`. This sidesteps timezone drift entirely.
-- **`lib/budget/calc.ts` and `lib/budget/dates.ts` import nothing.** No `drizzle`, no `react`, no `next`, no `Date.now()`. `today` is always a parameter. This is what makes them testable and is not negotiable.
+- **`lib/budget/calc.ts` and `lib/budget/dates.ts` import only their own siblings** (`./dates`, `./types`) and nothing else. No `drizzle`, no `react`, no `next`, no `server-only`, no `Date.now()` or `new Date()`. `today` is always a parameter. This is what makes them testable and is not negotiable.
 - **Every Server Action and every query function calls `verifySession()` first** and scopes its work to the returned `userId`. Never accept a `userId` from a client argument.
 - **`middleware.ts` does not exist in Next.js 16.** The file is `proxy.ts` and the export is `proxy`.
 - **Mobile-first.** The quick-add expense form is used standing at a register. Design at 375px width first, then widen.

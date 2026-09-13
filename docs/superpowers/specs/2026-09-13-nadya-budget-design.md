@@ -131,7 +131,7 @@ exported function is `proxy`, not `middleware`.
 
 ### Access control
 
-Auth.js Google provider with a `signIn` callback that allowlists a single
+Better Auth (Google provider) with a user-create hook that allowlists a single
 email address, read from `ALLOWED_EMAIL`. Any other Google account is rejected
 at sign-in and no user row is created. The address lives in an environment
 variable rather than in source so it can change without a deploy, and so the
@@ -384,6 +384,7 @@ must be encrypted at rest with a key held outside the database.
 | Name | Source |
 |---|---|
 | `DATABASE_URL` | Injected by the Vercel Neon integration |
-| `AUTH_SECRET` | Generated once (`npx auth secret`) |
-| `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | Google Cloud OAuth client |
+| `BETTER_AUTH_SECRET` | Generated once (`openssl rand -base64 32`) |
+| `BETTER_AUTH_URL` | The deployment origin |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google Cloud OAuth client |
 | `ALLOWED_EMAIL` | Nadya's Google address |
