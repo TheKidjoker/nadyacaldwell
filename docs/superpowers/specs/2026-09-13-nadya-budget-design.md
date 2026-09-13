@@ -9,10 +9,33 @@ Turn the current single-page "Coming Soon" site into two things:
 
 1. A lightweight public landing page (baby blue, SVG florals, no WebGL).
 2. A private budget tool at `/budget`, accessible only to Nadya via Google
-   sign-in, combining a monthly envelope budget with long-term savings goals.
+   sign-in, built around **pay periods rather than calendar months**, plus
+   long-term savings goals.
 
 One Next.js 16 app, TypeScript throughout, deployed on Vercel, backed by Neon
 Postgres.
+
+## The core idea
+
+Nadya is paid **every two weeks**, plus **a commission check once a month** that
+varies in size. Budgeting her by calendar month would be fighting her actual
+cash flow.
+
+The question she actually has is not *"how much did I budget for October"* but
+**"how much can I spend before Friday's check."** So the unit of planning is the
+pay period: a check arrives, she plans that money across the next two weeks, and
+the app tracks what is left and how many days it has to last.
+
+This also dissolves the variable-commission problem. There is no "expected vs.
+actual income" to reconcile — each check is simply whatever it is, and the
+monthly commission check makes one period a month fatter than the rest. That
+surplus is exactly what should be going to savings goals.
+
+The number that matters most, and that a monthly budget cannot produce:
+
+> **Safe to spend per day** = spendable remaining ÷ days until the next check
+>
+> *"You have $87 and 6 days left — about $14 a day."*
 
 ## The longer arc
 
@@ -36,7 +59,7 @@ ones that are *better because the budget sits next to them*:
 1. **Bills & due dates** — what is auto-pay vs. manual, and what is actually
    left after bills clear. Smallest build, reuses the budget data model.
 2. **Documents & renewals** — insurance, registration, lease, warranties, with
-   expiry reminders that pre-load the renewal cost into next month.
+   expiry reminders that pre-load the renewal cost into the next period.
 3. **Meal plan → grocery list** — the list drives the shop, the receipt lands in
    the groceries envelope.
 4. **Car & home maintenance** — service intervals that predict a cost and feed a
@@ -61,7 +84,9 @@ no database, and no test setup.
 | Decision | Choice | Why |
 |---|---|---|
 | Audience | Nadya only, private | Not a client tool or public calculator |
-| Budget model | Envelopes + savings goals | Covers day-to-day and long-term |
+| Planning unit | Pay period, not month | Matches biweekly pay; yields safe-to-spend-per-day |
+| Income | Logged per check, typed in | Two taps on payday; no PII stored, no parsing to get wrong |
+| Bills | Set-aside envelopes | Rent must not wreck whichever period it lands in |
 | Language | TypeScript, no Python | The logic is arithmetic; a second runtime would cost a second dependency chain and a second auth verification for no gain. `calc.ts` is isolated as the seam to port later if real analytics arrive. |
 | Login | Google, email allowlisted | No password to remember or rotate |
 | Database | Neon Postgres | Vercel-native, injects `DATABASE_URL`, scales to zero |
@@ -75,7 +100,7 @@ app/
   page.tsx                    public landing
   (private)/
     layout.tsx                calls verifySession(); shared chrome
-    budget/page.tsx           this month's envelopes
+    budget/page.tsx           current pay period
     budget/goals/page.tsx     savings goals
   api/auth/[...nextauth]/     Auth.js route handler
 
@@ -115,87 +140,118 @@ in local `.env.local`, both of which are gitignored.
 ## Data model
 
 Postgres via Drizzle. **All money is stored as integer cents** — never floats.
-Dates that represent calendar days (`occurred_on`, `month`) are `date`, not
-`timestamp`, to avoid timezone drift.
+Dates that represent calendar days are `date`, not `timestamp`, to avoid
+timezone drift.
 
 | Table | Columns (beyond id) |
 |---|---|
 | `users`, `accounts`, `sessions` | Auth.js standard schema |
-| `categories` | `user_id`, `name`, `color`, `sort_order`, `archived_at` |
-| `budget_months` | `user_id`, `month` (date, 1st of month), `base_income_cents`; unique on (`user_id`, `month`) |
-| `income_entries` | `budget_month_id`, `occurred_on`, `amount_cents`, `label` (e.g. "commission") |
-| `allocations` | `budget_month_id`, `category_id`, `amount_cents`; unique on (`budget_month_id`, `category_id`) |
+| `pay_periods` | `user_id`, `starts_on`, `ends_on`; unique on (`user_id`, `starts_on`) |
+| `paychecks` | `user_id`, `received_on`, `amount_cents`, `kind` (`'base'` or `'commission'`), `note` |
+| `categories` | `user_id`, `name`, `kind` (`'spending'` or `'bill'`), `monthly_target_cents` (bill only), `color`, `sort_order`, `archived_at` |
+| `allocations` | `pay_period_id`, `category_id`, `amount_cents`; unique on (`pay_period_id`, `category_id`) |
 | `transactions` | `user_id`, `category_id` (nullable), `occurred_on`, `amount_cents`, `note` |
 | `goals` | `user_id`, `name`, `target_cents`, `target_date` (nullable), `archived_at` |
 | `goal_contributions` | `goal_id`, `occurred_on`, `amount_cents`, `note` |
 
-Allocations are stored per-month rather than as a property of the category, so
-editing October's grocery envelope does not rewrite September's history.
+### Paychecks are separate from periods
 
-A transaction with a null `category_id` is uncategorized; it counts toward
-total spend but not toward any envelope.
+A period's income is **not** a column on `pay_periods`. It is the sum of
+`paychecks` whose `received_on` falls inside the period. This is what lets the
+biweekly check and the once-a-month commission check coexist: the period that
+happens to contain both simply has two paycheck rows.
 
-### Income: steady base plus variable commission
+`kind` distinguishes them so the UI can say "base $1,400 + commission $620"
+rather than one opaque number, and so commission can be steered toward goals.
 
-Nadya earns a **fixed base paycheck plus commission that changes every month**,
-so income is modelled in two parts:
+### Two kinds of category
 
-- `budget_months.base_income_cents` — the predictable paycheck. Carried forward
-  as the default when a new month is created, so she sets it once.
-- `income_entries` — one row per commission payment or other extra deposit, as
-  it actually arrives.
+This is the heart of the model.
 
-This gives two distinct numbers the UI must keep visibly separate:
+**Spending envelopes** (`kind = 'spending'`) — groceries, gas, eating out. They
+are allocated fresh each pay period and **reset at the start of the next one**.
+Money not spent is not lost; it surfaces as surplus that can be sent to a goal.
+These are the only envelopes that count toward safe-to-spend-per-day.
 
-- **Expected income** = `base_income_cents`. What she can safely allocate into
-  envelopes at the start of the month, before commission is known.
-- **Actual income** = base + sum of `income_entries`. What she really received.
+**Bill envelopes** (`kind = 'bill'`) — rent, car payment, insurance. These
+**accumulate across periods**. Each check sets aside a slice; the balance builds
+until the bill is due and the payment draws it back down.
 
-Budgeting against base alone is the point: envelopes are planned on money she
-is sure of, and commission arrives as surplus to send to a goal rather than as
-money already spent.
+A bill envelope's balance is always **derived, never stored**:
 
-**Transactions remain expenses only — there is no `kind` column.** Income never
-appears in `transactions`, so no dollar can be counted twice.
+```
+balance = sum(allocations to that category, all periods)
+        - sum(transactions in that category, all time)
+```
 
-Moving unallocated income to a goal writes a `goal_contributions` row; it does
-not create a transaction and does not reduce `income_cents`.
+Deriving it means it cannot drift out of sync with the rows it summarizes.
+
+The suggested per-check set-aside for a bill, on a biweekly schedule:
+
+```
+perCheckSetAside = monthly_target_cents * 12 / 26
+```
+
+Twelve bills a year spread over twenty-six checks — roughly 46% of the monthly
+amount per check, *not* half. Using half would quietly over-save by about 8%.
+
+A transaction with a null `category_id` is uncategorized; it counts toward total
+spend but not toward any envelope.
 
 ## Pure logic — `lib/budget/calc.ts`
 
 Plain data in, plain data out. No database access, no React, and no reading the
-clock internally — "today" is always passed in, so tests are deterministic.
+clock internally — `today` is always passed in, so tests are deterministic.
 
 ```ts
-summarizeMonth({ baseIncomeCents, incomeEntries, allocations, transactions }) => {
+summarizePeriod({ period, paychecks, categories, allocations, transactions, today }) => {
+  incomeCents, baseCents, commissionCents,
+
   categories: Array<{
-    categoryId, allocatedCents, spentCents, remainingCents, pctUsed, overspent
+    categoryId, kind, allocatedCents, spentCents, remainingCents,
+    pctUsed, overspent
   }>,
-  expectedIncomeCents,  // base only — what envelopes are planned against
-  actualIncomeCents,    // base + commission actually received
-  commissionCents,      // sum of incomeEntries
+
   totalAllocatedCents,
   totalSpentCents,
-  unallocatedCents,     // expected - allocated
-  surplusCents,         // actual - spent (the money commission freed up)
+  unallocatedCents,          // income - allocated
   uncategorizedCents,
+
+  // spending envelopes ONLY — bill set-asides are not hers to spend
+  spendableRemainingCents,
+  daysRemaining,             // today through ends_on, inclusive; 0 if past
+  safeToSpendPerDayCents,    // null when daysRemaining is 0
+}
+
+billEnvelopeBalance({ category, allocations, transactions, asOf }) => {
+  balanceCents,
+  monthlyTargetCents,
+  perCheckSetAsideCents,
+  fullyFunded,               // balance >= monthly target
 }
 
 goalProgress({ goal, contributions, today }) => {
   savedCents, remainingCents, pctComplete, isComplete,
-  monthsRemaining,          // null when no target_date
-  requiredPerMonthCents,    // null when no target_date or already complete
-  onPace,                   // null when it cannot be determined
+  monthsRemaining,           // null when no target_date
+  requiredPerMonthCents,     // null when no target_date or already complete
+  onPace,                    // null when it cannot be determined
   isOverdue,
 }
 ```
 
-Edge cases these must handle explicitly: overspent envelopes (negative
-remaining), an envelope allocated zero (so `pctUsed` never divides by zero),
-zero-income months, a month with no commission yet, commission arriving that
-exceeds base pay, income allocated beyond income, goals already met, goals
-past their target date, goals with no target date, and contributions dated in
-the future.
+### Edge cases these must handle explicitly
+
+- Overspent envelopes (negative remaining)
+- An envelope allocated zero, so `pctUsed` never divides by zero
+- A period with no paycheck logged yet
+- A period containing two paychecks (base + commission)
+- Allocating more than the period's income
+- `daysRemaining` of zero on the final day — `safeToSpendPerDay` returns null
+  rather than dividing by zero
+- A period already in the past
+- Bill envelopes with a negative balance (bill paid before fully funded)
+- Goals already met, past their target date, or with no target date
+- Contributions dated in the future
 
 ## UI
 
@@ -207,15 +263,20 @@ stays as-is: name, rule, "Coming Soon".
 
 ### Budget (`/budget`)
 
-- Month switcher (prev / next), defaulting to the current month.
-- Base income for the month, editable inline, plus a list of commission
-  payments received so far and a button to log a new one.
-- Envelope cards per category: allocated, spent, remaining, and a fill bar
-  that turns to a warning tint when overspent.
+Designed **mobile-first** — the quick-add expense form is used standing at a
+register, so it is reachable with a thumb and never more than two taps deep.
+
+- **Safe-to-spend-per-day, as the largest thing on the screen**, with days
+  remaining and the next payday underneath. This is the headline.
+- The period's paychecks: base and commission listed separately, with a button
+  to log a new check.
+- Spending envelopes: allocated, spent, remaining, and a fill bar that turns to
+  a warning tint when overspent.
+- Bill envelopes, visually separated from spending: accumulated balance against
+  monthly target, and whether this period's set-aside has been made.
 - A persistent quick-add expense form (amount, category, date, optional note).
-- A banner showing unallocated income, with an action to send it to a goal.
-- Commission is surfaced as surplus rather than folded into the spendable
-  total, so envelopes stay planned against the base paycheck.
+- Unallocated income surfaced as surplus, with an action to send it to a goal.
+- Prev / next navigation across periods.
 
 ### Goals (`/budget/goals`)
 
@@ -231,11 +292,26 @@ same component decorates the landing page and doubles as the goal indicator.
 Purely decorative instances are `aria-hidden`; `Bloom` used as a progress
 indicator carries an accessible label with the real numbers.
 
+## Onboarding
+
+The first run cannot drop her into an empty screen. On first sign-in she is
+asked for three things, and nothing more:
+
+1. The date of her most recent paycheck and its amount — this seeds the first
+   pay period and sets the biweekly cadence.
+2. Her monthly bills and their amounts — these become bill envelopes with
+   `monthly_target_cents` set, and the per-check set-aside is calculated for her.
+3. Whatever is left becomes spending envelopes, seeded with sensible defaults
+   (groceries, gas, eating out, personal, misc) that she can rename or delete.
+
+Subsequent periods are created automatically, carrying the previous period's
+allocations forward as the starting suggestion.
+
 ## Testing
 
 Vitest, added fresh. `lib/budget/calc.ts` is written test-first — it is pure
-functions with genuinely tricky edge cases, listed above. Schema and queries
-are not unit tested; they are exercised manually against a Neon branch.
+functions with genuinely tricky edge cases, listed above. Schema and queries are
+not unit tested; they are exercised manually against a Neon branch.
 
 ## What gets removed
 
@@ -244,14 +320,22 @@ new landing styles), and the `three`, `@react-three/fiber`, `@react-three/drei`,
 `@react-three/postprocessing`, `@types/three` dependencies. Recoverable from
 git history at commit `b6489f4`.
 
-`components/Hero.tsx` and `components/Corners.tsx` are kept and restyled
-against the new landing styles rather than deleted.
+`components/Hero.tsx` and `components/Corners.tsx` are kept and restyled against
+the new landing styles rather than deleted.
 
 ## Out of scope for v1
 
-Bank account sync, CSV/statement import, recurring transactions, charting
-libraries, trend dashboards, multi-user support, a Python service, and data
-export. Month navigation is a prev/next switcher, not an analytics view.
+Bank account sync, paystub photo upload or parsing, CSV/statement import,
+recurring transaction automation, charting libraries, trend dashboards,
+multi-user support, a Python service, and data export.
+
+### Paystub upload — considered and rejected
+
+Photographing a paystub to auto-extract net pay was considered. Rejected because
+typing two numbers on payday takes about ten seconds, while paystubs carry
+partial SSNs, home addresses, employer details and YTD earnings — storing or
+even transiting them makes the app responsible for real PII for almost no time
+saved.
 
 ### Bank sync — deferred deliberately
 
@@ -262,8 +346,7 @@ its schema**. `transactions` gets no `source`, `external_id`, `pending`, or
 The reasoning: adding nullable columns to Postgres later is a non-breaking
 migration, and the genuinely hard part of import — reconciling manually-entered
 transactions against imported ones so a purchase is not counted twice — is a
-data problem that exists regardless of when the columns are added. So there is
-little to buy by adding them speculatively now.
+data problem that exists regardless of when the columns are added.
 
 When it is revisited, the provider is **SimpleFIN Bridge** ($15/year, read-only,
 daily refresh). Teller's free developer tier returns real bank data and would
