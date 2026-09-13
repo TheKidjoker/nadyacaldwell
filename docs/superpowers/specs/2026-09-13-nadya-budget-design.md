@@ -30,7 +30,23 @@ builds, but it does set three constraints on how v1 is built:
 
 Deciding *which* module comes second is deliberately deferred until the budget
 is in Nadya's hands and she has used it — what she reaches for next is better
-evidence than what we guess now.
+evidence than what we guess now. The candidates, in rough priority order, are
+ones that are *better because the budget sits next to them*:
+
+1. **Bills & due dates** — what is auto-pay vs. manual, and what is actually
+   left after bills clear. Smallest build, reuses the budget data model.
+2. **Documents & renewals** — insurance, registration, lease, warranties, with
+   expiry reminders that pre-load the renewal cost into next month.
+3. **Meal plan → grocery list** — the list drives the shop, the receipt lands in
+   the groceries envelope.
+4. **Car & home maintenance** — service intervals that predict a cost and feed a
+   savings goal before it becomes an emergency.
+5. **Important dates** — birthdays and anniversaries wired to a gift envelope.
+
+Explicitly *not* candidates: generic to-do lists, notes, habit trackers, reading
+lists, and calendars. Commodity apps already do these better, and half-built
+tabs nobody opens are how a hub like this dies. The bar for a module is that the
+hub makes it better than a standalone app would be.
 
 ## Context
 
@@ -211,6 +227,28 @@ against the new landing styles rather than deleted.
 Bank account sync, CSV/statement import, recurring transactions, charting
 libraries, trend dashboards, multi-user support, a Python service, and data
 export. Month navigation is a prev/next switcher, not an analytics view.
+
+### Bank sync — deferred deliberately
+
+Automatic transaction import was evaluated and **consciously left out, including
+its schema**. `transactions` gets no `source`, `external_id`, `pending`, or
+`reviewed_at` columns in v1.
+
+The reasoning: adding nullable columns to Postgres later is a non-breaking
+migration, and the genuinely hard part of import — reconciling manually-entered
+transactions against imported ones so a purchase is not counted twice — is a
+data problem that exists regardless of when the columns are added. So there is
+little to buy by adding them speculatively now.
+
+When it is revisited, the provider is **SimpleFIN Bridge** ($15/year, read-only,
+daily refresh). Teller's free developer tier returns real bank data and would
+otherwise be the better API, but its coverage is concentrated in large national
+banks and Nadya uses a credit union, which SimpleFIN covers more reliably.
+
+Whoever picks this up should weigh one thing seriously: storing bank access
+tokens changes the app's threat model. A breach stops being "someone learns her
+grocery budget" and becomes "someone reads her full transaction history." Tokens
+must be encrypted at rest with a key held outside the database.
 
 ## Environment variables
 
