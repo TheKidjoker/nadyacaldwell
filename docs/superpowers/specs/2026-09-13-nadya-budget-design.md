@@ -122,7 +122,8 @@ Dates that represent calendar days (`occurred_on`, `month`) are `date`, not
 |---|---|
 | `users`, `accounts`, `sessions` | Auth.js standard schema |
 | `categories` | `user_id`, `name`, `color`, `sort_order`, `archived_at` |
-| `budget_months` | `user_id`, `month` (date, 1st of month), `income_cents`; unique on (`user_id`, `month`) |
+| `budget_months` | `user_id`, `month` (date, 1st of month), `base_income_cents`; unique on (`user_id`, `month`) |
+| `income_entries` | `budget_month_id`, `occurred_on`, `amount_cents`, `label` (e.g. "commission") |
 | `allocations` | `budget_month_id`, `category_id`, `amount_cents`; unique on (`budget_month_id`, `category_id`) |
 | `transactions` | `user_id`, `category_id` (nullable), `occurred_on`, `amount_cents`, `note` |
 | `goals` | `user_id`, `name`, `target_cents`, `target_date` (nullable), `archived_at` |
@@ -134,11 +135,28 @@ editing October's grocery envelope does not rewrite September's history.
 A transaction with a null `category_id` is uncategorized; it counts toward
 total spend but not toward any envelope.
 
-**Income has exactly one source of truth: `budget_months.income_cents`.**
-Transactions are always expenses — there is no `kind` column. Extra money
-arriving mid-month is handled by editing that month's income, not by logging an
-income transaction. This removes any chance of the same dollar being counted
-twice in `leftoverCents`.
+### Income: steady base plus variable commission
+
+Nadya earns a **fixed base paycheck plus commission that changes every month**,
+so income is modelled in two parts:
+
+- `budget_months.base_income_cents` — the predictable paycheck. Carried forward
+  as the default when a new month is created, so she sets it once.
+- `income_entries` — one row per commission payment or other extra deposit, as
+  it actually arrives.
+
+This gives two distinct numbers the UI must keep visibly separate:
+
+- **Expected income** = `base_income_cents`. What she can safely allocate into
+  envelopes at the start of the month, before commission is known.
+- **Actual income** = base + sum of `income_entries`. What she really received.
+
+Budgeting against base alone is the point: envelopes are planned on money she
+is sure of, and commission arrives as surplus to send to a goal rather than as
+money already spent.
+
+**Transactions remain expenses only — there is no `kind` column.** Income never
+appears in `transactions`, so no dollar can be counted twice.
 
 Moving unallocated income to a goal writes a `goal_contributions` row; it does
 not create a transaction and does not reduce `income_cents`.
@@ -149,14 +167,17 @@ Plain data in, plain data out. No database access, no React, and no reading the
 clock internally — "today" is always passed in, so tests are deterministic.
 
 ```ts
-summarizeMonth({ incomeCents, allocations, transactions }) => {
+summarizeMonth({ baseIncomeCents, incomeEntries, allocations, transactions }) => {
   categories: Array<{
     categoryId, allocatedCents, spentCents, remainingCents, pctUsed, overspent
   }>,
+  expectedIncomeCents,  // base only — what envelopes are planned against
+  actualIncomeCents,    // base + commission actually received
+  commissionCents,      // sum of incomeEntries
   totalAllocatedCents,
   totalSpentCents,
-  unallocatedCents,   // income - allocated
-  leftoverCents,      // income - spent
+  unallocatedCents,     // expected - allocated
+  surplusCents,         // actual - spent (the money commission freed up)
   uncategorizedCents,
 }
 
@@ -171,7 +192,8 @@ goalProgress({ goal, contributions, today }) => {
 
 Edge cases these must handle explicitly: overspent envelopes (negative
 remaining), an envelope allocated zero (so `pctUsed` never divides by zero),
-zero-income months, income allocated beyond income, goals already met, goals
+zero-income months, a month with no commission yet, commission arriving that
+exceeds base pay, income allocated beyond income, goals already met, goals
 past their target date, goals with no target date, and contributions dated in
 the future.
 
@@ -186,11 +208,14 @@ stays as-is: name, rule, "Coming Soon".
 ### Budget (`/budget`)
 
 - Month switcher (prev / next), defaulting to the current month.
-- Income for the month, editable inline.
+- Base income for the month, editable inline, plus a list of commission
+  payments received so far and a button to log a new one.
 - Envelope cards per category: allocated, spent, remaining, and a fill bar
   that turns to a warning tint when overspent.
 - A persistent quick-add expense form (amount, category, date, optional note).
 - A banner showing unallocated income, with an action to send it to a goal.
+- Commission is surfaced as surplus rather than folded into the spendable
+  total, so envelopes stay planned against the base paycheck.
 
 ### Goals (`/budget/goals`)
 
