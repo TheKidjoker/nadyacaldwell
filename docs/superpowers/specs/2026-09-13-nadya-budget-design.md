@@ -106,7 +106,7 @@ app/
   api/auth/[...nextauth]/     Auth.js route handler
 
 proxy.ts                      optimistic cookie check -> redirect
-lib/auth/dal.ts               verifySession(), getUser()
+lib/dal.ts                    verifySession() -- the real auth gate
 lib/budget/calc.ts            PURE math. no db, no react.
 lib/budget/actions.ts         Server Actions (verify -> validate -> persist)
 lib/db/schema.ts              Drizzle schema
@@ -121,7 +121,7 @@ Two layers, deliberately:
 - **`proxy.ts`** does a cheap session-cookie check and redirects strangers away
   from `/budget/*` immediately. Per the Next.js 16 docs this is an
   *optimistic* check only and is never the sole defense.
-- **`lib/auth/dal.ts`** is the real gate. `verifySession()` is memoized with
+- **`lib/dal.ts`** is the real gate. `verifySession()` is memoized with
   React's `cache()` and is called by every server component, Server Action, and
   query that touches budget data. Every query is scoped by `user_id` taken from
   the verified session — never from a client-supplied parameter.
