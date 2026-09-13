@@ -87,6 +87,7 @@ no database, and no test setup.
 | Planning unit | Pay period, not month | Matches biweekly pay; yields safe-to-spend-per-day |
 | Income | Logged per check, typed in | Two taps on payday; no PII stored, no parsing to get wrong |
 | Bills | Set-aside envelopes | Rent must not wreck whichever period it lands in |
+| Rollover | Per-envelope `carryover` flag | One balance formula with a flag, not two code paths |
 | Language | TypeScript, no Python | The logic is arithmetic; a second runtime would cost a second dependency chain and a second auth verification for no gain. `calc.ts` is isolated as the seam to port later if real analytics arrive. |
 | Login | Google, email allowlisted | No password to remember or rotate |
 | Database | Neon Postgres | Vercel-native, injects `DATABASE_URL`, scales to zero |
@@ -148,7 +149,7 @@ timezone drift.
 | `users`, `accounts`, `sessions` | Auth.js standard schema |
 | `pay_periods` | `user_id`, `starts_on`, `ends_on`; unique on (`user_id`, `starts_on`) |
 | `paychecks` | `user_id`, `received_on`, `amount_cents`, `kind` (`'base'` or `'commission'`), `note` |
-| `categories` | `user_id`, `name`, `kind` (`'spending'` or `'bill'`), `monthly_target_cents` (bill only), `color`, `sort_order`, `archived_at` |
+| `categories` | `user_id`, `name`, `kind` (`'spending'` or `'bill'`), `carryover` (bool), `monthly_target_cents` (bill only), `color`, `sort_order`, `archived_at` |
 | `allocations` | `pay_period_id`, `category_id`, `amount_cents`; unique on (`pay_period_id`, `category_id`) |
 | `transactions` | `user_id`, `category_id` (nullable), `occurred_on`, `amount_cents`, `note` |
 | `goals` | `user_id`, `name`, `target_cents`, `target_date` (nullable), `archived_at` |
@@ -168,23 +169,37 @@ rather than one opaque number, and so commission can be steered toward goals.
 
 This is the heart of the model.
 
-**Spending envelopes** (`kind = 'spending'`) — groceries, gas, eating out. They
-are allocated fresh each pay period and **reset at the start of the next one**.
-Money not spent is not lost; it surfaces as surplus that can be sent to a goal.
-These are the only envelopes that count toward safe-to-spend-per-day.
+**Spending envelopes** (`kind = 'spending'`) — groceries, gas, eating out.
+Allocated fresh each pay period. These are the only envelopes that count toward
+safe-to-spend-per-day, because bill set-asides are not hers to spend.
 
-**Bill envelopes** (`kind = 'bill'`) — rent, car payment, insurance. These
-**accumulate across periods**. Each check sets aside a slice; the balance builds
-until the bill is due and the payment draws it back down.
+**Bill envelopes** (`kind = 'bill'`) — rent, car payment, insurance. Each check
+sets aside a slice; the balance builds until the bill is due and the payment
+draws it back down.
 
-A bill envelope's balance is always **derived, never stored**:
+### Carryover unifies the two
 
-```
-balance = sum(allocations to that category, all periods)
-        - sum(transactions in that category, all time)
-```
+Whether an envelope's leftover money survives into the next period is a single
+per-category flag, `carryover`, and it is what actually drives the arithmetic:
 
-Deriving it means it cannot drift out of sync with the rows it summarizes.
+| `carryover` | Remaining is |
+|---|---|
+| `false` | `allocated(this period) − spent(this period)` |
+| `true` | `sum(allocations, all periods) − sum(transactions, all time)` |
+
+Bill envelopes are simply `kind = 'bill'` with `carryover = true`, enforced —
+accumulating *is* what a set-aside means. Spending envelopes may set it either
+way: carry the fuel envelope because fill-ups are lumpy, reset the eating-out
+one so a frugal fortnight does not silently license a blowout.
+
+This is why per-envelope rollover costs almost nothing to support: there is one
+balance formula with a flag, not two parallel code paths.
+
+**Balances are always derived, never stored**, so they cannot drift out of sync
+with the rows they summarize.
+
+Leftover in a non-carryover envelope is not lost — it surfaces as surplus she
+can deliberately send to a savings goal.
 
 The suggested per-check set-aside for a bill, on a biweekly schedule:
 
@@ -208,8 +223,8 @@ summarizePeriod({ period, paychecks, categories, allocations, transactions, toda
   incomeCents, baseCents, commissionCents,
 
   categories: Array<{
-    categoryId, kind, allocatedCents, spentCents, remainingCents,
-    pctUsed, overspent
+    categoryId, kind, carryover, allocatedCents, spentCents,
+    carriedInCents, remainingCents, pctUsed, overspent
   }>,
 
   totalAllocatedCents,
@@ -223,8 +238,8 @@ summarizePeriod({ period, paychecks, categories, allocations, transactions, toda
   safeToSpendPerDayCents,    // null when daysRemaining is 0
 }
 
-billEnvelopeBalance({ category, allocations, transactions, asOf }) => {
-  balanceCents,
+envelopeBalance({ category, allocations, transactions, asOf }) => {
+  balanceCents,               // carryover ? cumulative : this period only
   monthlyTargetCents,
   perCheckSetAsideCents,
   fullyFunded,               // balance >= monthly target
@@ -250,6 +265,10 @@ goalProgress({ goal, contributions, today }) => {
   rather than dividing by zero
 - A period already in the past
 - Bill envelopes with a negative balance (bill paid before fully funded)
+- A carryover envelope whose accumulated balance is negative from a past
+  overspend, so the debt follows her rather than vanishing at the next payday
+- Toggling `carryover` on an existing category, which changes its balance
+  formula and therefore its displayed remaining
 - Goals already met, past their target date, or with no target date
 - Contributions dated in the future
 
@@ -303,6 +322,8 @@ asked for three things, and nothing more:
    `monthly_target_cents` set, and the per-check set-aside is calculated for her.
 3. Whatever is left becomes spending envelopes, seeded with sensible defaults
    (groceries, gas, eating out, personal, misc) that she can rename or delete.
+   These default to `carryover = false`; she can flip any of them later without
+   losing history, since balances are derived rather than stored.
 
 Subsequent periods are created automatically, carrying the previous period's
 allocations forward as the starting suggestion.
