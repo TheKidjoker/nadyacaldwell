@@ -45,7 +45,7 @@ work rather than fighting it:
 
 - **It is the only expressive face.** One flourish in a quiet room reads
   considered; small cursive among other ornament reads sweet.
-- **It is never small.** A 2.5rem floor on her name and a 1.6rem floor on the
+- **It is never small.** A 2.5rem floor on her name and a 2rem floor on the
   corner accent. A script face at caption size is where this goes wrong.
 - **It gets one warm hairline beneath it** and no other decoration.
 
@@ -123,7 +123,7 @@ implementation rather than taken from this table on faith.
 | Role | Face | Rules |
 |---|---|---|
 | Wordmark | Parisienne | Her name. Minimum 2.5rem. |
-| Accent | Parisienne | The corner line "More Beautiful Things Ahead", minimum 1.6rem, hidden below 1180px. Nowhere else. |
+| Accent | Parisienne | The corner line "More Beautiful Things Ahead", minimum 2rem, hidden below 1180px. Nowhere else. |
 | Everything | Manrope | Weights 200–600. Weight 200 for the headline figure. |
 | Figures | Manrope | `font-variant-numeric: tabular-nums` wherever digits align in a column |
 

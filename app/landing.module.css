@@ -29,7 +29,6 @@
   letter-spacing: 0.34em;
   text-transform: uppercase;
   font-weight: 500;
-  text-shadow: none;
 }
 
 .cornerLeft,
@@ -72,7 +71,7 @@
   /* The one place besides her name where the script is allowed. It is set
    * large enough to read as an accent rather than as small decorative type. */
   font-family: var(--font-script), "Segoe Script", cursive;
-  font-size: clamp(1.6rem, 2.1vw, 2.1rem);
+  font-size: clamp(2rem, 2.6vw, 2.6rem);
   letter-spacing: 0.01em;
   text-transform: none;
   color: var(--blue-light);
@@ -203,7 +202,7 @@
 
 .dashNumber {
   font-size: clamp(2.6rem, 12vw, 4.25rem);
-  font-weight: 600;
+  font-weight: 200;
   line-height: 1;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
@@ -314,7 +313,7 @@
 }
 
 .dashLink:hover {
-  background: var(--ink);
+  background: var(--blue-mid);
 }
 
 @media (max-width: 480px) {

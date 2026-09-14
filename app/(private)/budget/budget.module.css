@@ -28,7 +28,7 @@
 
 .headlineNumber {
   font-size: clamp(2.75rem, 14vw, 4rem);
-  font-weight: 600;
+  font-weight: 200;
   color: var(--ink);
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -51,6 +51,7 @@
   padding: 0.5rem;
   border-radius: 0.75rem;
   box-shadow: 0 6px 20px rgb(2 8 16 / 0.55);
+  border: 1px solid var(--night-line);
   margin-bottom: 2rem;
 }
 
@@ -65,12 +66,16 @@
   min-width: 0;
 }
 
+.quickAmount::placeholder {
+  color: var(--ink-faint);
+}
+
 .quickSubmit {
   padding: 0.7rem 1.1rem;
   border-radius: 0.5rem;
   border: none;
   background: var(--blue-light);
-  color: var(--night);
+  color: var(--night-deep);
   font-size: 1rem;
   cursor: pointer;
 }

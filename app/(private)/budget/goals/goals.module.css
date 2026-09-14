@@ -91,12 +91,16 @@
   font-family: inherit;
 }
 
+.input::placeholder {
+  color: var(--ink-faint);
+}
+
 .addButton {
   padding: 0.6rem 1.1rem;
   border-radius: 0.5rem;
   border: none;
   background: var(--blue-light);
-  color: var(--night);
+  color: var(--night-deep);
   font-size: 1rem;
   cursor: pointer;
 }

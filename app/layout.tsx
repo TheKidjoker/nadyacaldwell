@@ -4,7 +4,7 @@ import "./globals.css";
 
 const sans = Manrope({
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
+  weight: ["200", "300", "400", "500", "600"],
   variable: "--font-sans",
   display: "swap",
 });
