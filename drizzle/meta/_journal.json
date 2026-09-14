@@ -8,6 +8,13 @@
       "when": 1789358521924,
       "tag": "0000_steady_silver_surfer",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789359643514,
+      "tag": "0001_loose_golden_guardian",
+      "breakpoints": true
     }
   ]
 }

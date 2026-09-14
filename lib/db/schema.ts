@@ -3,6 +3,7 @@ import {
   boolean,
   check,
   date,
+  index,
   integer,
   pgEnum,
   pgTable,
@@ -76,6 +77,8 @@ export const cadenceEnum = pgEnum("cadence", [
   "annual",
 ]);
 export const bucketEnum = pgEnum("bucket", ["needs", "wants", "savings"]);
+export const categoryKindEnum = pgEnum("category_kind", ["spending", "bill"]);
+export const paycheckKindEnum = pgEnum("paycheck_kind", ["base", "commission"]);
 
 export const payPeriods = pgTable(
   "pay_periods",
@@ -90,17 +93,20 @@ export const payPeriods = pgTable(
   (t) => [unique("pay_periods_user_start").on(t.userId, t.startsOn)],
 );
 
-export const paychecks = pgTable("paychecks", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  receivedOn: date("received_on").notNull(),
-  amountCents: integer("amount_cents").notNull(),
-  /** 'base' | 'commission' */
-  kind: text("kind").notNull(),
-  note: text("note"),
-});
+export const paychecks = pgTable(
+  "paychecks",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    receivedOn: date("received_on").notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    kind: paycheckKindEnum("kind").notNull(),
+    note: text("note"),
+  },
+  (t) => [index("paychecks_user_received_idx").on(t.userId, t.receivedOn)],
+);
 
 export const categories = pgTable(
   "categories",
@@ -110,8 +116,7 @@ export const categories = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
-    /** 'spending' | 'bill' */
-    kind: text("kind").notNull(),
+    kind: categoryKindEnum("kind").notNull(),
     /** Bills force this true; accumulating is what a set-aside means. */
     carryover: boolean("carryover").notNull().default(false),
     bucket: bucketEnum("bucket").notNull().default("wants"),
@@ -122,19 +127,26 @@ export const categories = pgTable(
     sortOrder: integer("sort_order").notNull().default(0),
     archivedAt: timestamp("archived_at"),
   },
-  (t) => ({
-    billFieldsTogether: check(
+  (t) => [
+    check(
+      // `kind` is a pgEnum column; cast to text so the comparison against a
+      // plain string literal type-checks under Postgres's enum operator
+      // rules (an enum column has no `=` operator against `text`).
       "bill_fields_together",
-      sql`(${t.kind} = 'bill' AND ${t.cadence} IS NOT NULL AND ${t.recurringAmountCents} IS NOT NULL AND ${t.dueAnchor} IS NOT NULL)
-        OR (${t.kind} = 'spending' AND ${t.cadence} IS NULL AND ${t.recurringAmountCents} IS NULL AND ${t.dueAnchor} IS NULL)`,
+      sql`(${t.kind}::text = 'bill' AND ${t.cadence} IS NOT NULL AND ${t.recurringAmountCents} IS NOT NULL AND ${t.dueAnchor} IS NOT NULL)
+        OR (${t.kind}::text = 'spending' AND ${t.cadence} IS NULL AND ${t.recurringAmountCents} IS NULL AND ${t.dueAnchor} IS NULL)`,
     ),
-  }),
+    index("categories_user_idx").on(t.userId),
+  ],
 );
 
 export const allocations = pgTable(
   "allocations",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
     payPeriodId: uuid("pay_period_id")
       .notNull()
       .references(() => payPeriods.id, { onDelete: "cascade" }),
@@ -143,23 +155,30 @@ export const allocations = pgTable(
       .references(() => categories.id, { onDelete: "cascade" }),
     amountCents: integer("amount_cents").notNull(),
   },
-  (t) => [unique("allocations_period_category").on(t.payPeriodId, t.categoryId)],
+  (t) => [
+    unique("allocations_period_category").on(t.payPeriodId, t.categoryId),
+    index("allocations_pay_period_idx").on(t.payPeriodId),
+  ],
 );
 
-export const transactions = pgTable("transactions", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  /** Null means uncategorized: counts toward total spend, no envelope. */
-  categoryId: uuid("category_id").references(() => categories.id, {
-    onDelete: "set null",
-  }),
-  occurredOn: date("occurred_on").notNull(),
-  amountCents: integer("amount_cents").notNull(),
-  note: text("note"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+export const transactions = pgTable(
+  "transactions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    /** Null means uncategorized: counts toward total spend, no envelope. */
+    categoryId: uuid("category_id").references(() => categories.id, {
+      onDelete: "set null",
+    }),
+    occurredOn: date("occurred_on").notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    note: text("note"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("transactions_user_occurred_idx").on(t.userId, t.occurredOn)],
+);
 
 export const goals = pgTable("goals", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -174,6 +193,9 @@ export const goals = pgTable("goals", {
 
 export const goalContributions = pgTable("goal_contributions", {
   id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
   goalId: uuid("goal_id")
     .notNull()
     .references(() => goals.id, { onDelete: "cascade" }),
@@ -182,11 +204,20 @@ export const goalContributions = pgTable("goal_contributions", {
   note: text("note"),
 });
 
-export const allocationTargets = pgTable("allocation_targets", {
-  userId: text("user_id")
-    .primaryKey()
-    .references(() => user.id, { onDelete: "cascade" }),
-  needsPct: integer("needs_pct").notNull().default(50),
-  wantsPct: integer("wants_pct").notNull().default(30),
-  savingsPct: integer("savings_pct").notNull().default(20),
-});
+export const allocationTargets = pgTable(
+  "allocation_targets",
+  {
+    userId: text("user_id")
+      .primaryKey()
+      .references(() => user.id, { onDelete: "cascade" }),
+    needsPct: integer("needs_pct").notNull().default(50),
+    wantsPct: integer("wants_pct").notNull().default(30),
+    savingsPct: integer("savings_pct").notNull().default(20),
+  },
+  (t) => [
+    check(
+      "targets_sum_to_100",
+      sql`${t.needsPct} + ${t.wantsPct} + ${t.savingsPct} = 100`,
+    ),
+  ],
+);

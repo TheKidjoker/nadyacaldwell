@@ -5,6 +5,11 @@ import type { Config } from "drizzle-kit";
 // drizzle-kit's CLI only auto-loads `.env`, never `.env.local`. Load
 // `.env.local` here (without overriding anything already in the shell env)
 // so `DATABASE_URL_UNPOOLED` is available for generate/migrate.
+//
+// This is NOT a general dotenv implementation: it does not handle `export `
+// prefixes, `#` comments, or multi-line values. It's a minimal parser sized
+// to this project's one `.env.local` file, not a drop-in replacement for
+// the `dotenv` package.
 function loadEnvLocal(): void {
   const path = resolve(process.cwd(), ".env.local");
   if (!existsSync(path)) return;
