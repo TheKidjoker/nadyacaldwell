@@ -1,4 +1,5 @@
 import { verifySession } from "@/lib/dal";
+import { TopNav } from "@/components/TopNav";
 
 export default async function PrivateLayout({
   children,
@@ -9,5 +10,10 @@ export default async function PrivateLayout({
   // for the userId — it is memoized, so this costs one lookup per render.
   await verifySession();
 
-  return <>{children}</>;
+  return (
+    <>
+      <TopNav />
+      {children}
+    </>
+  );
 }

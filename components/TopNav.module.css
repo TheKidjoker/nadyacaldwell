@@ -1,0 +1,100 @@
+/* ------------------------------------------------------------------ *
+ * The top bar for the private area.
+ *
+ * Restraint is the brief: a hairline, three words, and one lit rule. Every
+ * colour is a token from app/globals.css; Nightfall has no light variant, so
+ * there is deliberately no prefers-color-scheme branch below.
+ * ------------------------------------------------------------------ */
+
+.nav {
+  border-bottom: 1px solid var(--night-line);
+  /* viewportFit is "cover", so the bar has to clear the notch itself rather
+   * than trusting the page under it to. */
+  padding-top: env(safe-area-inset-top, 0px);
+  background: var(--night-deep);
+  animation: fadeIn 0.9s var(--ease-soft) both;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 0 calc(env(safe-area-inset-left, 0px) + 0.5rem) 0
+    calc(env(safe-area-inset-right, 0px) + 0.5rem);
+  list-style: none;
+}
+
+.item {
+  /* Three tabs share the row evenly at 375px and stay left-aligned in a
+   * column wider than they need. */
+  min-width: 0;
+}
+
+.tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 2.75rem is the 44px tap-target floor. */
+  min-height: 2.75rem;
+  padding: 0 0.85rem;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 180ms var(--ease-soft);
+}
+
+.tab:hover {
+  color: var(--ink);
+}
+
+/* The current page carries three signals, not one: aria-current in the
+ * markup, this rule under the label, and the weight and ink below. */
+.tabCurrent {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.tabCurrent::after {
+  content: "";
+  position: absolute;
+  left: 0.85rem;
+  right: 0.85rem;
+  /* Sits on the nav's own hairline rather than above it. */
+  bottom: -1px;
+  height: 2px;
+  background: var(--blue-light);
+  border-radius: 999px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (min-width: 40rem) {
+  .tab {
+    padding: 0 1.1rem;
+  }
+
+  .tabCurrent::after {
+    left: 1.1rem;
+    right: 1.1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav {
+    animation: none;
+  }
+
+  .tab {
+    transition: none;
+  }
+}

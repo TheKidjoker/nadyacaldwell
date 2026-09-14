@@ -15,6 +15,20 @@
       "when": 1789359643514,
       "tag": "0001_loose_golden_guardian",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789420140438,
+      "tag": "0002_chubby_green_goblin",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789421274931,
+      "tag": "0003_left_tony_stark",
+      "breakpoints": true
     }
   ]
 }

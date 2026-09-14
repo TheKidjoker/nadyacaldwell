@@ -1,0 +1,746 @@
+/* ------------------------------------------------------------------ *
+ * Notes, diary and to-do surfaces.
+ *
+ * This is the one part of the app that is not about numbers, so it is given
+ * air: a wider line-height, fewer rules, and a writing field that reads as a
+ * page rather than as an input. Every colour here is a token from
+ * app/globals.css; Nightfall has no light variant, so there is deliberately
+ * no prefers-color-scheme branch below.
+ *
+ * Phone first: nothing exceeds the column at 375px, every control clears the
+ * 44px tap floor, and every text field is at least 16px so iOS does not zoom
+ * the page when she focuses it.
+ * ------------------------------------------------------------------ */
+
+.page {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: calc(env(safe-area-inset-top, 0px) + 1.5rem)
+    calc(env(safe-area-inset-right, 0px) + 1rem)
+    calc(env(safe-area-inset-bottom, 0px) + 5rem)
+    calc(env(safe-area-inset-left, 0px) + 1rem);
+}
+
+/* ---------- page head ---------- */
+
+.crumb {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+}
+
+.crumb a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: var(--ink-soft);
+  text-decoration: none;
+  transition: color 180ms var(--ease-soft);
+}
+
+.crumb a:hover {
+  color: var(--ink);
+}
+
+.head {
+  margin-bottom: 1.75rem;
+  animation: rise 0.8s var(--ease-soft) both 0.05s;
+}
+
+.title {
+  margin: 0;
+  /* Plain sans. The cursive is her name and nothing else. */
+  font-size: clamp(1.6rem, 7vw, 2.1rem);
+  font-weight: 200;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  color: var(--ink);
+  /* A section she named herself could be one long unbroken word. */
+  overflow-wrap: anywhere;
+}
+
+.hairline {
+  width: 2.2rem;
+  height: 1px;
+  margin: 0.85rem 0 0;
+  background: var(--warm);
+  opacity: 0.8;
+}
+
+.lead {
+  margin: 0.9rem 0 0;
+  max-width: 30rem;
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+.empty {
+  margin: 1.5rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+
+/* ---------- the section list ---------- */
+
+.sections {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  animation: rise 0.9s var(--ease-soft) both 0.15s;
+}
+
+.sectionCard {
+  border: 1px solid var(--night-line);
+  border-radius: 0.75rem;
+  background: var(--night);
+  overflow: hidden;
+}
+
+.sectionMain {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.sectionLink {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.2rem;
+  min-width: 0;
+  min-height: 3.5rem;
+  padding: 0.75rem 0 0.75rem 1rem;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.sectionName {
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.sectionMeta {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.sectionLink:hover .sectionName {
+  color: var(--blue-light);
+}
+
+/* ---------- row tools: move, edit, delete ---------- */
+
+.tools {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding-right: 0.35rem;
+}
+
+.toolForm {
+  display: contents;
+}
+
+/* Square, thumb-sized, and quiet until touched. The glyph inside is
+ * decorative -- every one of these carries a real aria-label. */
+.tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  min-width: 2.75rem;
+  height: 2.75rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: none;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 180ms var(--ease-soft);
+}
+
+.tool:hover {
+  color: var(--ink);
+}
+
+.tool:disabled {
+  color: var(--ink-faint);
+  cursor: default;
+}
+
+.toolOpen {
+  color: var(--blue-light);
+}
+
+/* ---------- the edit panel under a row ---------- */
+
+.panel {
+  padding: 0.9rem 1rem 1rem;
+  border-top: 1px solid var(--night-line);
+  background: var(--night-deep);
+  animation: fadeIn 0.3s var(--ease-soft) both;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.label {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.6rem 0.7rem;
+  font: inherit;
+  /* 16px exactly: below this iOS zooms the viewport on focus. */
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--ink-faint);
+  background: var(--night);
+  color: var(--ink);
+  min-width: 0;
+}
+
+.input::placeholder {
+  /* --ink-faint would drop the hint to ~3:1; --ink-soft holds 5.5:1. */
+  color: var(--ink-soft);
+  opacity: 1;
+}
+
+/* Safari paints the native date picker glyph dark-on-dark. */
+.input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.submit {
+  min-height: 2.75rem;
+  padding: 0 1.35rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--blue-light);
+  color: var(--night-deep);
+  font: inherit;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: background 180ms var(--ease-soft);
+}
+
+.submit:hover {
+  background: var(--blue-mid);
+}
+
+.submit:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.cancel {
+  min-height: 2.75rem;
+  padding: 0 0.6rem;
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.cancel:hover {
+  color: var(--ink);
+}
+
+/* Destructive, and it says so in words. The two-step below means the first
+ * tap never deletes anything. */
+.danger {
+  margin-left: auto;
+  min-height: 2.75rem;
+  padding: 0 0.6rem;
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: color 180ms var(--ease-soft);
+}
+
+.danger:hover {
+  color: var(--over);
+}
+
+.dangerArmed {
+  color: var(--over);
+  font-weight: 500;
+}
+
+.error {
+  margin: 0.6rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--over);
+}
+
+/* ---------- add a section ---------- */
+
+.addButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.85rem;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 1px dashed var(--ink-faint);
+  border-radius: 0.7rem;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition:
+    border-color 180ms var(--ease-soft),
+    color 180ms var(--ease-soft);
+}
+
+.addButton:hover {
+  border-color: var(--blue-light);
+  color: var(--blue-light);
+}
+
+/* Once she has sections, the slot stops being the thing the eye lands on. */
+.addButtonQuiet {
+  border-style: solid;
+  border-color: var(--night-line);
+  color: var(--ink-soft);
+}
+
+.addPlus {
+  font-size: 1.05em;
+  line-height: 1;
+}
+
+.slot {
+  margin-top: 0.85rem;
+  padding: 1rem 0.9rem 1.05rem;
+  border: 1px solid var(--blue-mid);
+  border-radius: 0.7rem;
+  background: var(--night);
+  animation: fadeIn 0.3s var(--ease-soft) both;
+}
+
+/* ---------- journal / to-do choice ---------- */
+
+.fieldset {
+  /* A fieldset for the semantics, not for the browser's default box. */
+  border: 0;
+  margin: 0.9rem 0 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.choice {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.choiceOption {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-height: 2.75rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--ink-faint);
+  border-radius: 0.5rem;
+  background: var(--night-deep);
+  color: var(--ink);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.choiceOption:has(input:checked) {
+  border-color: var(--blue-light);
+}
+
+.choiceTop {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.choiceOption input {
+  accent-color: var(--blue-light);
+  margin: 0;
+}
+
+.choiceWhy {
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+
+/* The one thing about a section that cannot be undone, said before she
+ * commits rather than discovered afterwards. */
+.slotNote {
+  margin: 0.75rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+/* ---------- the writing surface ---------- */
+
+.composer {
+  margin-bottom: 2rem;
+  padding: 0.9rem 0.9rem 1rem;
+  border: 1px solid var(--night-line);
+  border-radius: 0.9rem;
+  background: var(--night);
+  animation: rise 0.9s var(--ease-soft) both 0.15s;
+}
+
+/* Deliberately not an .input: no inner border, no well. It is a sheet of
+ * paper laid on the card, which is the whole point of this screen. */
+.writing {
+  display: block;
+  width: 100%;
+  min-height: 8rem;
+  padding: 0.3rem 0.2rem;
+  border: none;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 1.02rem;
+  line-height: 1.85;
+  resize: vertical;
+  min-width: 0;
+}
+
+.writing:focus {
+  outline: none;
+}
+
+/* The focus ring belongs to the card, so the page does not gain a rectangle
+ * inside a rectangle the moment she starts writing. */
+.composer:focus-within {
+  border-color: var(--blue-mid);
+}
+
+.writing::placeholder {
+  color: var(--ink-soft);
+  opacity: 1;
+}
+
+.composerFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--night-line);
+}
+
+.dayField {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.dayInput {
+  min-height: 2.75rem;
+  padding: 0 0.55rem;
+  font: inherit;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--night-line);
+  background: var(--night-deep);
+  color: var(--ink);
+  min-width: 0;
+}
+
+.dayInput::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+.composerSubmit {
+  margin-left: auto;
+}
+
+/* ---------- the to-do add line ---------- */
+
+.addLine {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.75rem;
+  animation: rise 0.9s var(--ease-soft) both 0.15s;
+}
+
+.addLineInput {
+  flex: 1;
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: 0.6rem 0.8rem;
+  font: inherit;
+  font-size: 1rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--night-line);
+  background: var(--night);
+  color: var(--ink);
+}
+
+.addLineInput::placeholder {
+  color: var(--ink-soft);
+  opacity: 1;
+}
+
+/* ---------- the entry list ---------- */
+
+.entries {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  animation: fadeIn 0.9s var(--ease-soft) both 0.25s;
+}
+
+.entry {
+  border: 1px solid var(--night-line);
+  border-radius: 0.75rem;
+  background: var(--night);
+  overflow: hidden;
+}
+
+.entryBody {
+  padding: 0.9rem 1rem 0.35rem;
+}
+
+.entryDay {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.entryTitle {
+  margin: 0.3rem 0 0;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+/* Her paragraph breaks are hers: kept as typed, and allowed to break inside
+ * a word rather than push the page sideways on a narrow phone. */
+.entryText {
+  margin: 0.45rem 0 0;
+  font-size: 0.96rem;
+  line-height: 1.8;
+  color: var(--ink);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.entryTools {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 0.35rem 0.15rem;
+}
+
+/* ---------- one to-do item ---------- */
+
+/* Sits inside .entry, which already supplies the border and the ground. */
+.todo {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.2rem;
+}
+
+.todoCheck {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  min-width: 2.75rem;
+  min-height: 3rem;
+  cursor: pointer;
+}
+
+.checkbox {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--blue-light);
+  cursor: pointer;
+}
+
+.todoText {
+  flex: 1;
+  min-width: 0;
+  align-self: center;
+  padding: 0.75rem 0.25rem;
+  font-size: 0.96rem;
+  line-height: 1.55;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+/* Struck through AND dimmed: the line alone is invisible to anyone who
+ * cannot make it out, the dimming alone reads as "disabled". */
+.todoTextDone {
+  color: var(--ink-soft);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.todoNote {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  white-space: pre-wrap;
+}
+
+.todoTools {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding-right: 0.35rem;
+  align-self: center;
+}
+
+/* ---------- inline editing ---------- */
+
+.editPanel {
+  padding: 0.9rem 1rem 1rem;
+  border-top: 1px solid var(--night-line);
+  background: var(--night-deep);
+  animation: fadeIn 0.3s var(--ease-soft) both;
+}
+
+.editWriting {
+  display: block;
+  width: 100%;
+  min-height: 7rem;
+  min-width: 0;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--ink-faint);
+  border-radius: 0.5rem;
+  background: var(--night);
+  color: var(--ink);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.75;
+  resize: vertical;
+}
+
+.editRow {
+  display: grid;
+  gap: 0.55rem;
+  margin-bottom: 0.55rem;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Under ~416px the tick, the words and three 44px controls on one line
+ * leave the words about 160px. The controls drop to their own line instead;
+ * the tap targets are the thing that must not shrink. */
+@media (max-width: 26rem) {
+  .todo {
+    flex-wrap: wrap;
+  }
+
+  .todoText {
+    flex-basis: calc(100% - 2.95rem);
+  }
+
+  .todoTools {
+    width: 100%;
+    justify-content: flex-end;
+    padding-bottom: 0.15rem;
+  }
+}
+
+@media (min-width: 40rem) {
+  .page {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 2.25rem);
+    padding-left: calc(env(safe-area-inset-left, 0px) + 1.5rem);
+    padding-right: calc(env(safe-area-inset-right, 0px) + 1.5rem);
+  }
+
+  .editRow {
+    grid-template-columns: 1fr auto;
+    align-items: end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .head,
+  .sections,
+  .composer,
+  .addLine,
+  .entries,
+  .slot,
+  .panel,
+  .editPanel {
+    animation: none;
+  }
+
+  .crumb a,
+  .tool,
+  .addButton,
+  .submit,
+  .danger {
+    transition: none;
+  }
+}
