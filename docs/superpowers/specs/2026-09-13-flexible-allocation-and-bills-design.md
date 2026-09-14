@@ -5,10 +5,12 @@ changes parts of it and says so explicitly where it does.
 
 ## Summary
 
-Three additions, driven by Nadya's actual expenses:
+Three additions, driven by the shape of Nadya's expenses. Every dollar figure in
+this document is an example chosen to exercise the arithmetic — none of them are
+her numbers, and the app is not seeded with any.
 
 1. **Recurring bills at any cadence.** She enters a bill as it really is —
-   $160 weekly, $852 every six months — and the app derives the per-paycheck
+   weekly, monthly, every six months — and the app derives the per-paycheck
    set-aside. Replaces the monthly-only `monthly_target_cents`.
 2. **A live allocation screen.** Bills come off the top automatically. What
    remains is hers to assign across flexible envelopes, with *left to assign*
@@ -18,26 +20,44 @@ Three additions, driven by Nadya's actual expenses:
 
 Plus a **50/30/20 lens** over the whole thing — reference lines, not a verdict.
 
-## Her actual expenses
+## The app ships empty
 
-This design exists because the original spec's placeholder categories did not
-match her life. The real set:
+**No amount is seeded, anywhere.** Every envelope starts at zero and stays there
+until Nadya enters her own figures through onboarding. The app never invents a
+number and never shows her a number she did not provide.
+
+This is a decision, not an omission. A budget pre-filled with someone's guess at
+her rent is worse than an empty one: she has to audit every line to find out
+which are real, and any she misses become a lie the daily number is computed
+from. An empty envelope is honest and takes one entry to fix.
+
+The category *names* below are offered during onboarding as a starting list she
+can accept, rename, or delete. They carry no amounts.
 
 | Category | Kind | Bucket | Cadence |
 |---|---|---|---|
-| Rent | bill | needs | monthly |
-| Daycare | bill | needs | weekly |
-| Car note | bill | needs | monthly |
-| Car insurance | bill | needs | semiannual |
+| Rent | bill | needs | she chooses |
+| Daycare | bill | needs | she chooses |
+| Car note | bill | needs | she chooses |
+| Car insurance | bill | needs | she chooses |
 | Groceries | spending | needs | — |
 | Gas | spending | needs | — |
 | Starbucks | spending | wants | — |
 | Eating out | spending | wants | — |
 
-**Amounts are still needed from Chance.** Every figure in this document is
-illustrative. Daycare in particular is likely her largest single line — at
-$160/week it annualises above rent — and the design's conclusions are sensitive
-to it.
+Cadence is hers to set per bill rather than assumed — daycare is commonly weekly
+and car insurance commonly semiannual, but assuming either would be the same
+mistake as assuming an amount.
+
+### Consequences
+
+- The in-memory demo fixture currently backing the UI is **deleted**, not
+  updated. It exists only because there was no database; once onboarding writes
+  real categories there is nothing for it to stand in for.
+- `/budget`, `/budget/calendar` and `/` all need a genuine **empty state** —
+  what she sees before onboarding and what she sees if she deletes everything.
+- Onboarding stops being a late task and becomes the **entry point to the whole
+  app**. It moves ahead of the budget UI in the build order.
 
 ## Decisions
 
@@ -99,31 +119,37 @@ in February and the 30th in April. It gets explicit tests.
 
 ## The 50/30/20 lens
 
-### The arithmetic does not work for her, and that is the point
+### The rule will probably not fit her, and the design must survive that
 
-Against the illustrative figures:
+Her real percentages are unknown until she completes onboarding, and this
+document deliberately asserts none.
 
-| Bucket | Actual | Rule |
-|---|---|---|
-| Needs | ~76% | 50% |
-| Wants | ~7% | 30% |
-| Savings | ~17% | 20% |
+What can be said without her figures is structural. Her needs bucket carries
+rent, childcare, a car payment and car insurance — four costs fixed by contract
+that no in-period decision can move. Her wants bucket carries coffee and the
+occasional lunch out. On that shape, needs landing well above 50% and wants well
+below 30% is the likely outcome, and it would not indicate overspending. It
+would indicate a household with a child and a car.
 
-Her needs run 26 points over target because childcare, housing and a car
-payment are structural costs she cannot move this month. Her discretionary
-spending — the Starbucks the tool was half-built to watch — is **7%**, and her
-savings rate is already **17%**, within striking distance of the 20% target.
+The design therefore must not treat a needs bucket over 50% as a failure,
+because for her it is probably the arithmetic of her life rather than a
+behaviour. If her numbers do fit the rule, the same neutral presentation shows
+that too.
 
 ### Therefore: a lens, not a scorecard
 
 The rule is rendered as three bars showing actual against a reference line.
 Specifically **not** specified:
 
-- No red/fail state on the needs bar. It will exceed 50% every period for years.
-  A tool that shows her failing at something she cannot change is a tool she
-  stops opening, and it would be wrong besides — she is not overspending.
-- No suggestions to cut. The app does not have the standing to tell her to drop
-  daycare.
+- **No red/fail state on the needs bar.** A tool that shows her failing at
+  something she cannot change is a tool she stops opening.
+- **No suggestions to cut.** The app does not have the standing to tell her to
+  drop daycare, and cutting is not what the number is evidence of.
+- **No congratulation either.** The bars report; they do not praise. Scoring in
+  one direction invites scoring in the other.
+
+The savings bar is the one bucket she can genuinely move period to period, and
+it is the one the screen should lead with.
 
 The targets are **editable**, defaulting to 50/30/20. If she sets 75/10/15 she
 gets a line she can actually steer by, and moving it is her decision. They are
@@ -295,15 +321,73 @@ the amount, not the category name.
 
 Gains a link to both new screens. Otherwise unchanged.
 
-## Onboarding changes
+## Onboarding — `/onboarding`
 
-Task 10's onboarding gains cadence and due-anchor entry per bill, and seeds her
-real categories as defaults rather than the generic set in the original spec.
+Since nothing is seeded, this is how the app acquires everything it knows. It
+replaces Task 10's three-question sketch and moves ahead of the budget UI in the
+build order.
 
-Bucket assignment is not asked about during onboarding — the defaults (bills →
-needs, spending → wants) are right for seven of her eight categories, and
-groceries is a single correction she can make later. Asking eight questions to
-prevent one edit is the wrong trade.
+Three steps. She can leave and come back; each step commits as she completes it,
+so a half-finished setup is not lost.
+
+### Step 1 — her last paycheck
+
+Date received, amount, and whether it was base or commission. This seeds the
+first pay period, fixes the biweekly cadence, and is the only step that cannot
+be skipped: without a period there is nothing to allocate against.
+
+### Step 2 — her bills
+
+A repeating row: **name, amount, cadence, next due date.** She adds as many as
+she has and removes any she does not. The suggested names (rent, daycare, car
+note, car insurance) pre-fill the list as empty rows she can accept or delete;
+nothing about them is committed until she types an amount.
+
+Each completed row shows its derived per-paycheck set-aside immediately — she
+types "$160 weekly" and sees "$320.00 per paycheck" appear. This is the moment
+the app's central idea becomes legible, and it should not be deferred to a later
+screen.
+
+### Step 3 — her flexible spending
+
+Names only: groceries, gas, Starbucks, eating out, plus anything she adds. No
+amounts here. Amounts belong on the assign screen, where she can see what is
+left after bills — asking her to invent a grocery budget before she knows what
+is available would be asking her to guess.
+
+This step is skippable. Envelopes can be created later from the budget page.
+
+### Then
+
+She lands on `/budget/assign` with bills already deducted and the full remainder
+to assign. That is the first screen where the tool does something for her.
+
+### What is not asked
+
+**Bucket.** Defaults are bills → needs and spending → wants. Those are right for
+most of her list; groceries and gas are the likely corrections, made later on
+the category itself. Asking a needs/wants question on every row to prevent two
+edits is the wrong trade, and the distinction is not obvious enough to explain
+mid-wizard.
+
+**Her 50/30/20 targets.** They default to 50/30/20 and are editable from the
+assign screen once she has numbers to look at. A target set before she has seen
+a single real percentage is a guess.
+
+## Empty states
+
+With no seeded data these are load-bearing, not decoration.
+
+| Screen | Before onboarding | After, but empty |
+|---|---|---|
+| `/` | Name, and a single call to action into onboarding. No zeroed dashboard — `$0.00 a day` is alarming rather than neutral. | — |
+| `/budget` | Redirect to `/onboarding` | "No envelopes yet" with an add action |
+| `/budget/assign` | Redirect to `/onboarding` | Bills section only, with everything to assign |
+| `/budget/calendar` | Redirect to `/onboarding` | The grid, with paydays and no bills |
+| `/budget/goals` | Reachable; goals are independent of periods | Existing empty case |
+
+The redirect to `/onboarding` when `getPeriodData` returns null already exists in
+the budget page and is the correct behaviour; it simply has no destination yet.
 
 ## Supersedes in the original spec
 
@@ -315,6 +399,12 @@ prevent one edit is the wrong trade.
   item #1 described. A general-purpose calendar remains out of scope.
 - **`monthly_target_cents` is replaced**, and the data model table in the
   original spec is out of date accordingly.
+- **Onboarding is rewritten and promoted.** The original spec's three questions
+  become the three steps above, and it stops being Task 10 — with nothing
+  seeded, it is the only way data enters the app, so it precedes the budget UI.
+- **The default spending envelopes change.** The original spec seeds "groceries,
+  gas, eating out, personal, misc" with sensible defaults; this design seeds
+  names only, with no amounts, and uses her list.
 
 ## Out of scope
 
@@ -334,7 +424,22 @@ cannot rot with the date.
 
 ## Sequencing
 
-`recurrence.ts` and `calendar.ts` are pure and can be built and tested
-immediately. Both screens can run against the existing in-memory fixture. The
-schema change lands with Task 7, and nothing here ships before Task 8 supplies
-auth.
+`recurrence.ts` and `calendar.ts` are pure — no database, no auth — and can be
+built and tested immediately, the same way Tasks 3–6 were.
+
+Everything else now depends on persistence in a way the earlier UI did not.
+Deleting the fixture means onboarding has nowhere to write until the database
+exists, and an onboarding flow that forgets her bills when the dev server
+restarts is not worth demonstrating. So:
+
+| Work | Needs |
+|---|---|
+| `recurrence.ts`, `calendar.ts` | nothing — buildable now |
+| Schema change (`cadence`, `bucket`, `allocation_targets`) | Task 7, Neon |
+| Onboarding, assign screen, calendar page | Task 7 |
+| Shipping any of it | Task 8, auth |
+
+This is a real change in the critical path. The previous round of UI work was
+deliberately built on a fixture to sidestep the blocked database tasks; that
+option is gone the moment the app has to remember what she typed. **Neon is now
+the blocker for everything except the two pure modules.**
