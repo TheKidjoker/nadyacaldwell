@@ -123,6 +123,7 @@ export default async function BudgetPage({
       )}
 
       <nav className={styles.footerNav}>
+        <Link href="/">&larr; Home</Link>
         <Link href="/budget/goals">Savings goals &rarr;</Link>
       </nav>
     </main>

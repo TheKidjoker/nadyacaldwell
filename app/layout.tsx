@@ -24,9 +24,9 @@ const script = Parisienne({
 });
 
 const SITE = "https://nadyacaldwell.com";
-const TITLE = "Nadya — Coming Soon";
+const TITLE = "Nadya";
 const DESCRIPTION =
-  "Nadya is creating something beautiful. A new experience is coming soon.";
+  "Nadya's budget and savings, in one quiet place.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
@@ -71,7 +71,7 @@ export default function RootLayout({
       lang="en"
       className={`${serif.variable} ${sans.variable} ${script.variable}`}
     >
-      <body>{children}</body>
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }

@@ -13,7 +13,8 @@ export default async function GoalsPage() {
   return (
     <main className={styles.page}>
       <nav className={styles.topNav}>
-        <Link href="/budget">&larr; Budget</Link>
+        <Link href="/">&larr; Home</Link>
+        <Link href="/budget">Budget</Link>
       </nav>
 
       <h1 className={styles.title}>Savings goals</h1>

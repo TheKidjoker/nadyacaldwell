@@ -5,6 +5,8 @@
 }
 
 .topNav {
+  display: flex;
+  gap: 1.25rem;
   font-size: 0.85rem;
   margin-bottom: 1.5rem;
 }
