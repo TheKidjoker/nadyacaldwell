@@ -45,9 +45,17 @@ work rather than fighting it:
 
 - **It is the only expressive face.** One flourish in a quiet room reads
   considered; small cursive among other ornament reads sweet.
-- **It is never small.** 2.5rem floor, and it is used for her name and nothing
-  else. A script face at caption size is where this goes wrong.
+- **It is never small.** A 2.5rem floor on her name and a 1.6rem floor on the
+  corner accent. A script face at caption size is where this goes wrong.
 - **It gets one warm hairline beneath it** and no other decoration.
+
+**Amended 2026-09-13.** This rule originally read "her name and nothing else",
+and enforcing it literally set the corner line "More Beautiful Things Ahead" in
+the sans stack — where a rotated sans phrase reads as broken CSS rather than as
+an accent. Chance asked for the cursive back. The script is therefore permitted
+in exactly two places, her name and that one corner line, and nowhere else. The
+constraint that actually matters was never the count; it is the size floor and
+the absence of competing ornament.
 
 ## Tokens
 
@@ -114,7 +122,8 @@ implementation rather than taken from this table on faith.
 
 | Role | Face | Rules |
 |---|---|---|
-| Wordmark | Parisienne | Her name only. Minimum 2.5rem. Never for labels, buttons, or body. |
+| Wordmark | Parisienne | Her name. Minimum 2.5rem. |
+| Accent | Parisienne | The corner line "More Beautiful Things Ahead", minimum 1.6rem, hidden below 1180px. Nowhere else. |
 | Everything | Manrope | Weights 200–600. Weight 200 for the headline figure. |
 | Figures | Manrope | `font-variant-numeric: tabular-nums` wherever digits align in a column |
 

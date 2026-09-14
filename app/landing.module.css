@@ -65,6 +65,22 @@
 }
 
 
+.script {
+  position: absolute;
+  right: clamp(2.5rem, 7vw, 7.5rem);
+  top: 20%;
+  /* The one place besides her name where the script is allowed. It is set
+   * large enough to read as an accent rather than as small decorative type. */
+  font-family: var(--font-script), "Segoe Script", cursive;
+  font-size: clamp(1.6rem, 2.1vw, 2.1rem);
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--blue-light);
+  opacity: 0.55;
+  transform: rotate(-6deg);
+  animation: fadeIn 1.8s var(--ease-soft) both 1.5s;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -320,5 +336,12 @@
   .goalChip,
   .dashLink {
     transition: none;
+  }
+}
+
+/* The handwritten accent only earns its space on wide screens. */
+@media (max-width: 1180px) {
+  .script {
+    display: none;
   }
 }
