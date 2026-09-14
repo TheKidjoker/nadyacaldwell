@@ -1,0 +1,198 @@
+.page {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1rem 1rem 5rem;
+}
+
+.periodNav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin-bottom: 1.5rem;
+}
+
+.periodNav a {
+  color: var(--ink);
+}
+
+.periodLabel {
+  font-variant-numeric: tabular-nums;
+}
+
+.headline {
+  text-align: center;
+  padding: 1.5rem 0 2rem;
+}
+
+.headlineNumber {
+  font-size: clamp(2.75rem, 14vw, 4rem);
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.headlineLabel {
+  margin-top: 0.5rem;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+.quickAdd {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 0.5rem;
+  position: sticky;
+  top: 0.5rem;
+  z-index: 10;
+  background: var(--pearl);
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 12px rgb(62 90 121 / 0.12);
+  margin-bottom: 2rem;
+}
+
+.quickAmount,
+.quickSelect {
+  padding: 0.7rem 0.6rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--ink-faint);
+  background: var(--pearl);
+  color: var(--ink-body);
+  min-width: 0;
+}
+
+.quickSubmit {
+  padding: 0.7rem 1.1rem;
+  border-radius: 0.5rem;
+  border: none;
+  background: var(--sea-near);
+  color: var(--pearl);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.section {
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 0.75rem;
+}
+
+.sectionNote {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin-bottom: 0.75rem;
+}
+
+.income {
+  color: var(--ink-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.unallocated {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.envelopes {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.envelope {
+  border: 1px solid color-mix(in srgb, var(--ink-faint) 35%, transparent);
+  border-radius: 0.75rem;
+  padding: 0.9rem 1rem;
+  background: var(--pearl);
+}
+
+.envelopeHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.envelopeName {
+  font-size: 1rem;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.amount,
+.amountOver {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.amount {
+  color: var(--ink);
+}
+
+.amountOver {
+  color: #b4553f;
+}
+
+.bar {
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sea-far) 45%, transparent);
+  overflow: hidden;
+  margin: 0.6rem 0 0.5rem;
+}
+
+.fill,
+.fillOver {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 240ms var(--ease-soft);
+}
+
+.fill {
+  background: var(--sea-near);
+}
+
+.fillOver {
+  background: #b4553f;
+}
+
+.envelopeMeta {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+.footerNav {
+  text-align: center;
+  padding-top: 1rem;
+}
+
+.footerNav a {
+  color: var(--ink);
+}
+
+@media (min-width: 40rem) {
+  .page {
+    padding: 2rem 1.5rem 5rem;
+  }
+
+  .envelopes {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fill,
+  .fillOver {
+    transition: none;
+  }
+}
