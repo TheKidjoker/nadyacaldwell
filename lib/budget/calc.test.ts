@@ -15,8 +15,11 @@ function spending(overrides: Partial<Category> = {}): Category {
     id: "c1",
     name: "Groceries",
     kind: "spending",
+    bucket: "needs",
     carryover: false,
-    monthlyTargetCents: null,
+    cadence: null,
+    recurringAmountCents: null,
+    dueAnchor: null,
     color: "#9ac5e7",
     sortOrder: 0,
     ...overrides,
@@ -28,8 +31,11 @@ function bill(overrides: Partial<Category> = {}): Category {
     id: "c2",
     name: "Rent",
     kind: "bill",
+    bucket: "needs",
     carryover: true,
-    monthlyTargetCents: 120_000,
+    cadence: "monthly",
+    recurringAmountCents: 120_000,
+    dueAnchor: "2026-09-01",
     color: "#6ba1cd",
     sortOrder: 1,
     ...overrides,
@@ -154,12 +160,33 @@ describe("envelopeBalance — bill set-asides", () => {
       transactions: [],
     });
 
-    // 120000 * 12 / 26 = 55384.6 -> 55385. Half would be 60000.
     expect(r.perCheckSetAsideCents).toBe(55_385);
     expect(r.perCheckSetAsideCents).not.toBe(60_000);
   });
 
-  it("accumulates across periods and reports fully funded", () => {
+  it("computes the set-aside for a weekly bill", () => {
+    const r = envelopeBalance({
+      category: bill({ cadence: "weekly", recurringAmountCents: 16_000 }),
+      period,
+      allocations: [],
+      transactions: [],
+    });
+
+    expect(r.perCheckSetAsideCents).toBe(32_000);
+  });
+
+  it("computes the set-aside for a semiannual premium", () => {
+    const r = envelopeBalance({
+      category: bill({ cadence: "semiannual", recurringAmountCents: 85_200 }),
+      period,
+      allocations: [],
+      transactions: [],
+    });
+
+    expect(r.perCheckSetAsideCents).toBe(6_554);
+  });
+
+  it("is fully funded only when it can pay the bill in full", () => {
     const r = envelopeBalance({
       category: bill(),
       period,
@@ -175,11 +202,12 @@ describe("envelopeBalance — bill set-asides", () => {
     expect(r.fullyFunded).toBe(true);
   });
 
-  it("is not fully funded before the target is reached", () => {
+  it("is not fully funded at a sixth of a semiannual premium", () => {
+    // The old monthly-target rule would have called 14,200 'funded'.
     const r = envelopeBalance({
-      category: bill(),
+      category: bill({ cadence: "semiannual", recurringAmountCents: 85_200 }),
       period,
-      allocations: [alloc("p2", "c2", 55_385)],
+      allocations: [alloc("p2", "c2", 14_200)],
       transactions: [],
     });
 
@@ -198,7 +226,18 @@ describe("envelopeBalance — bill set-asides", () => {
     expect(r.overspent).toBe(true);
   });
 
-  it("leaves perCheckSetAside null for spending categories", () => {
+  it("reports the next due date on or after the period start", () => {
+    const r = envelopeBalance({
+      category: bill({ dueAnchor: "2026-09-01", cadence: "monthly" }),
+      period, // 2026-09-11 .. 2026-09-24
+      allocations: [],
+      transactions: [],
+    });
+
+    expect(r.nextDueOn).toBe("2026-10-01");
+  });
+
+  it("leaves every bill field null for spending categories", () => {
     const r = envelopeBalance({
       category: spending(),
       period,
@@ -208,10 +247,24 @@ describe("envelopeBalance — bill set-asides", () => {
 
     expect(r.perCheckSetAsideCents).toBeNull();
     expect(r.fullyFunded).toBeNull();
+    expect(r.nextDueOn).toBeNull();
+    expect(r.cadence).toBeNull();
+  });
+
+  it("carries the bucket through", () => {
+    const r = envelopeBalance({
+      category: spending({ bucket: "wants" }),
+      period,
+      allocations: [],
+      transactions: [],
+    });
+
+    expect(r.bucket).toBe("wants");
   });
 });
 
 import { summarizePeriod } from "./calc";
+import { DEFAULT_TARGETS } from "./types";
 import type { Paycheck } from "./types";
 
 const check = (id: string, receivedOn: string, amountCents: number, kind: Paycheck["kind"]): Paycheck =>
@@ -231,6 +284,7 @@ describe("summarizePeriod", () => {
       categories,
       allocations: [],
       transactions: [],
+      targets: DEFAULT_TARGETS,
       today: "2026-09-18",
     });
 
@@ -246,6 +300,7 @@ describe("summarizePeriod", () => {
       categories,
       allocations: [alloc("p2", "c1", 30_000), alloc("p2", "c2", 55_385)],
       transactions: [],
+      targets: DEFAULT_TARGETS,
       today: "2026-09-11",
     });
 
@@ -261,6 +316,7 @@ describe("summarizePeriod", () => {
       categories: [spending()],
       allocations: [alloc("p2", "c1", 28_000)],
       transactions: [txn("t1", "c1", "2026-09-12", 14_000)],
+      targets: DEFAULT_TARGETS,
       today: "2026-09-18", // 18th through 24th inclusive = 7 days
     });
 
@@ -276,6 +332,7 @@ describe("summarizePeriod", () => {
       categories: [spending()],
       allocations: [alloc("p2", "c1", 28_000)],
       transactions: [],
+      targets: DEFAULT_TARGETS,
       today: "2026-09-25",
     });
 
@@ -290,6 +347,7 @@ describe("summarizePeriod", () => {
       categories: [spending()],
       allocations: [alloc("p2", "c1", 1_000)],
       transactions: [],
+      targets: DEFAULT_TARGETS,
       today: "2026-09-22", // 22,23,24 = 3 days; 1000/3 = 333.33
     });
 
@@ -303,6 +361,7 @@ describe("summarizePeriod", () => {
       categories: [spending()],
       allocations: [alloc("p2", "c1", 10_000)],
       transactions: [txn("t1", "c1", "2026-09-12", 14_000)],
+      targets: DEFAULT_TARGETS,
       today: "2026-09-22",
     });
 
@@ -320,6 +379,7 @@ describe("summarizePeriod", () => {
         txn("t1", "c1", "2026-09-12", 3_000),
         { id: "t2", categoryId: null, occurredOn: "2026-09-13", amountCents: 1_500 },
       ],
+      targets: DEFAULT_TARGETS,
       today: "2026-09-13",
     });
 
@@ -334,6 +394,7 @@ describe("summarizePeriod", () => {
       categories: [spending()],
       allocations: [alloc("p2", "c1", 70_000)],
       transactions: [],
+      targets: DEFAULT_TARGETS,
       today: "2026-09-11",
     });
 
@@ -347,6 +408,7 @@ describe("summarizePeriod", () => {
       categories: [spending()],
       allocations: [],
       transactions: [],
+      targets: DEFAULT_TARGETS,
       today: "2026-09-01",
     });
 

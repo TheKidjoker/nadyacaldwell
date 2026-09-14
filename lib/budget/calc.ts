@@ -1,4 +1,5 @@
 import { compareISO, daysInclusive, isWithin, monthsBetween } from "./dates";
+import { nextOccurrence, perCheckSetAside } from "./recurrence";
 import type { ISODate } from "./dates";
 import type {
   Allocation,
@@ -12,14 +13,6 @@ import type {
   PeriodSummary,
   Transaction,
 } from "./types";
-
-/** Twelve monthly bills spread across twenty-six biweekly checks. */
-const CHECKS_PER_YEAR = 26;
-const MONTHS_PER_YEAR = 12;
-
-export function perCheckSetAside(monthlyTargetCents: number): number {
-  return Math.round((monthlyTargetCents * MONTHS_PER_YEAR) / CHECKS_PER_YEAR);
-}
 
 export function envelopeBalance(input: {
   category: Category;
@@ -63,11 +56,14 @@ export function envelopeBalance(input: {
   const remainingCents = availableCents - spentCents;
 
   const isBill = category.kind === "bill";
-  const target = category.monthlyTargetCents;
+  const amount = category.recurringAmountCents;
+  const cadence = category.cadence;
+  const isFullBill = isBill && amount !== null && cadence !== null;
 
   return {
     categoryId: category.id,
     kind: category.kind,
+    bucket: category.bucket,
     carryover: category.carryover,
     allocatedCents,
     carriedInCents,
@@ -75,9 +71,16 @@ export function envelopeBalance(input: {
     remainingCents,
     pctUsed: availableCents > 0 ? spentCents / availableCents : 0,
     overspent: remainingCents < 0,
-    monthlyTargetCents: target,
-    perCheckSetAsideCents: isBill && target !== null ? perCheckSetAside(target) : null,
-    fullyFunded: isBill && target !== null ? remainingCents >= target : null,
+    cadence: isFullBill ? cadence : null,
+    recurringAmountCents: isFullBill ? amount : null,
+    perCheckSetAsideCents: isFullBill ? perCheckSetAside(amount, cadence) : null,
+    // Funded means she can pay the bill as it will actually arrive, not that
+    // she has saved a monthly slice of it.
+    fullyFunded: isFullBill ? remainingCents >= amount : null,
+    nextDueOn:
+      isFullBill && category.dueAnchor !== null
+        ? nextOccurrence(category.dueAnchor, cadence, period.startsOn)
+        : null,
   };
 }
 
