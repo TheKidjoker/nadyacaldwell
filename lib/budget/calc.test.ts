@@ -210,3 +210,146 @@ describe("envelopeBalance — bill set-asides", () => {
     expect(r.fullyFunded).toBeNull();
   });
 });
+
+import { summarizePeriod } from "./calc";
+import type { Paycheck } from "./types";
+
+const check = (id: string, receivedOn: string, amountCents: number, kind: Paycheck["kind"]): Paycheck =>
+  ({ id, receivedOn, amountCents, kind });
+
+describe("summarizePeriod", () => {
+  const categories = [spending(), bill()];
+
+  it("sums base and commission checks landing inside the period", () => {
+    const r = summarizePeriod({
+      period,
+      paychecks: [
+        check("k1", "2026-09-11", 140_000, "base"),
+        check("k2", "2026-09-18", 62_000, "commission"),
+        check("k0", "2026-08-28", 140_000, "base"), // prior period
+      ],
+      categories,
+      allocations: [],
+      transactions: [],
+      today: "2026-09-18",
+    });
+
+    expect(r.baseCents).toBe(140_000);
+    expect(r.commissionCents).toBe(62_000);
+    expect(r.incomeCents).toBe(202_000);
+  });
+
+  it("excludes bill set-asides from spendable remaining", () => {
+    const r = summarizePeriod({
+      period,
+      paychecks: [check("k1", "2026-09-11", 140_000, "base")],
+      categories,
+      allocations: [alloc("p2", "c1", 30_000), alloc("p2", "c2", 55_385)],
+      transactions: [],
+      today: "2026-09-11",
+    });
+
+    // Only the groceries envelope is spendable. Rent's 55,385 is not.
+    expect(r.spendableRemainingCents).toBe(30_000);
+    expect(r.totalAllocatedCents).toBe(85_385);
+  });
+
+  it("computes safe-to-spend-per-day over the days remaining", () => {
+    const r = summarizePeriod({
+      period, // 2026-09-11 .. 2026-09-24
+      paychecks: [check("k1", "2026-09-11", 140_000, "base")],
+      categories: [spending()],
+      allocations: [alloc("p2", "c1", 28_000)],
+      transactions: [txn("t1", "c1", "2026-09-12", 14_000)],
+      today: "2026-09-18", // 18th through 24th inclusive = 7 days
+    });
+
+    expect(r.daysRemaining).toBe(7);
+    expect(r.spendableRemainingCents).toBe(14_000);
+    expect(r.safeToSpendPerDayCents).toBe(2_000);
+  });
+
+  it("returns null for safe-to-spend once the period has passed", () => {
+    const r = summarizePeriod({
+      period,
+      paychecks: [],
+      categories: [spending()],
+      allocations: [alloc("p2", "c1", 28_000)],
+      transactions: [],
+      today: "2026-09-25",
+    });
+
+    expect(r.daysRemaining).toBe(0);
+    expect(r.safeToSpendPerDayCents).toBeNull();
+  });
+
+  it("rounds the day rate down, never encouraging an overspend", () => {
+    const r = summarizePeriod({
+      period,
+      paychecks: [],
+      categories: [spending()],
+      allocations: [alloc("p2", "c1", 1_000)],
+      transactions: [],
+      today: "2026-09-22", // 22,23,24 = 3 days; 1000/3 = 333.33
+    });
+
+    expect(r.safeToSpendPerDayCents).toBe(333);
+  });
+
+  it("reports a negative day rate when spending envelopes are overspent", () => {
+    const r = summarizePeriod({
+      period,
+      paychecks: [],
+      categories: [spending()],
+      allocations: [alloc("p2", "c1", 10_000)],
+      transactions: [txn("t1", "c1", "2026-09-12", 14_000)],
+      today: "2026-09-22",
+    });
+
+    expect(r.spendableRemainingCents).toBe(-4_000);
+    expect(r.safeToSpendPerDayCents).toBeLessThan(0);
+  });
+
+  it("tracks uncategorized spend separately", () => {
+    const r = summarizePeriod({
+      period,
+      paychecks: [],
+      categories: [spending()],
+      allocations: [alloc("p2", "c1", 10_000)],
+      transactions: [
+        txn("t1", "c1", "2026-09-12", 3_000),
+        { id: "t2", categoryId: null, occurredOn: "2026-09-13", amountCents: 1_500 },
+      ],
+      today: "2026-09-13",
+    });
+
+    expect(r.uncategorizedCents).toBe(1_500);
+    expect(r.totalSpentCents).toBe(4_500);
+  });
+
+  it("reports negative unallocated when she allocates more than she was paid", () => {
+    const r = summarizePeriod({
+      period,
+      paychecks: [check("k1", "2026-09-11", 50_000, "base")],
+      categories: [spending()],
+      allocations: [alloc("p2", "c1", 70_000)],
+      transactions: [],
+      today: "2026-09-11",
+    });
+
+    expect(r.unallocatedCents).toBe(-20_000);
+  });
+
+  it("gives a full period of days when today is before it starts", () => {
+    const r = summarizePeriod({
+      period,
+      paychecks: [],
+      categories: [spending()],
+      allocations: [],
+      transactions: [],
+      today: "2026-09-01",
+    });
+
+    expect(r.daysRemaining).toBe(14);
+  });
+});

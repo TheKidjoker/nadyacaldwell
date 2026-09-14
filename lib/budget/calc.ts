@@ -1,9 +1,12 @@
-import { compareISO, isWithin } from "./dates";
+import { compareISO, daysInclusive, isWithin } from "./dates";
+import type { ISODate } from "./dates";
 import type {
   Allocation,
   Category,
   EnvelopeBalance,
+  Paycheck,
   PayPeriod,
+  PeriodSummary,
   Transaction,
 } from "./types";
 
@@ -77,4 +80,69 @@ export function envelopeBalance(input: {
 
 function sum(values: number[]): number {
   return values.reduce((total, v) => total + v, 0);
+}
+
+export function summarizePeriod(input: {
+  period: PayPeriod;
+  paychecks: Paycheck[];
+  categories: Category[];
+  allocations: Allocation[];
+  transactions: Transaction[];
+  today: ISODate;
+}): PeriodSummary {
+  const { period, paychecks, categories, allocations, transactions, today } = input;
+
+  const inPeriod = paychecks.filter((p) =>
+    isWithin(p.receivedOn, period.startsOn, period.endsOn),
+  );
+  const baseCents = sum(
+    inPeriod.filter((p) => p.kind === "base").map((p) => p.amountCents),
+  );
+  const commissionCents = sum(
+    inPeriod.filter((p) => p.kind === "commission").map((p) => p.amountCents),
+  );
+
+  const envelopes = categories.map((category) =>
+    envelopeBalance({ category, period, allocations, transactions }),
+  );
+
+  const periodTxns = transactions.filter((t) =>
+    isWithin(t.occurredOn, period.startsOn, period.endsOn),
+  );
+
+  // Bill set-asides are reserved, not spendable. Including them here would
+  // inflate the headline number and is the one error that actively misleads.
+  const spendableRemainingCents = sum(
+    envelopes.filter((e) => e.kind === "spending").map((e) => e.remainingCents),
+  );
+
+  const daysRemaining =
+    compareISO(today, period.startsOn) < 0
+      ? daysInclusive(period.startsOn, period.endsOn)
+      : daysInclusive(today, period.endsOn);
+
+  return {
+    incomeCents: baseCents + commissionCents,
+    baseCents,
+    commissionCents,
+    envelopes,
+    totalAllocatedCents: sum(
+      allocations.filter((a) => a.payPeriodId === period.id).map((a) => a.amountCents),
+    ),
+    totalSpentCents: sum(periodTxns.map((t) => t.amountCents)),
+    unallocatedCents:
+      baseCents +
+      commissionCents -
+      sum(
+        allocations.filter((a) => a.payPeriodId === period.id).map((a) => a.amountCents),
+      ),
+    uncategorizedCents: sum(
+      periodTxns.filter((t) => t.categoryId === null).map((t) => t.amountCents),
+    ),
+    spendableRemainingCents,
+    daysRemaining,
+    // Math.floor rather than round, so the number never encourages an overspend.
+    safeToSpendPerDayCents:
+      daysRemaining > 0 ? Math.floor(spendableRemainingCents / daysRemaining) : null,
+  };
 }
