@@ -52,7 +52,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   // Lets the page paint into the notch area so env(safe-area-inset-*) is live.
   viewportFit: "cover",
-  themeColor: "#0f2438",
+  themeColor: "#071320",
   colorScheme: "dark",
 };
 

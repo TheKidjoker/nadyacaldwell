@@ -29,7 +29,7 @@
   letter-spacing: 0.34em;
   text-transform: uppercase;
   font-weight: 500;
-  text-shadow: 0 1px 10px rgba(255, 255, 255, 0.55);
+  text-shadow: none;
 }
 
 .cornerLeft,
@@ -68,7 +68,7 @@
   position: absolute;
   right: clamp(2.5rem, 7vw, 7.5rem);
   top: 20%;
-  font-family: var(--font-script), cursive;
+  font-family: var(--font-sans), "Segoe UI", system-ui, sans-serif;
   font-size: clamp(1.4rem, 2.1vw, 2.1rem);
   letter-spacing: 0.01em;
   text-transform: none;
@@ -232,7 +232,8 @@
   gap: 0.15rem;
   padding: 0.7rem 0.4rem;
   border-radius: 0.7rem;
-  background: rgb(255 255 255 / 0.45);
+  background: var(--night);
+  border: 1px solid var(--night-line);
 }
 
 .statLabel {
@@ -267,14 +268,15 @@
   align-items: center;
   padding: 0.6rem 1rem 0.6rem 0.6rem;
   border-radius: 0.75rem;
-  background: rgb(255 255 255 / 0.45);
+  background: var(--night);
+  border: 1px solid var(--night-line);
   text-decoration: none;
   text-align: left;
-  transition: background 180ms var(--ease-soft);
+  transition: border-color 180ms var(--ease-soft);
 }
 
 .goalChip:hover {
-  background: rgb(255 255 255 / 0.72);
+  border-color: var(--blue-mid);
 }
 
 .goalChip svg {
