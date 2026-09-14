@@ -64,19 +64,6 @@
   opacity: 0.45;
 }
 
-.script {
-  position: absolute;
-  right: clamp(2.5rem, 7vw, 7.5rem);
-  top: 20%;
-  font-family: var(--font-sans), "Segoe UI", system-ui, sans-serif;
-  font-size: clamp(1.4rem, 2.1vw, 2.1rem);
-  letter-spacing: 0.01em;
-  text-transform: none;
-  color: var(--ink-soft);
-  opacity: 0.8;
-  transform: rotate(-6deg);
-  animation: fadeIn 1.8s var(--ease-soft) both 1.5s;
-}
 
 @keyframes fadeIn {
   from {
@@ -152,12 +139,6 @@
  * Responsive
  * ------------------------------------------------------------------ */
 
-/* The handwritten accent only earns its space on wide screens. */
-@media (max-width: 1180px) {
-  .script {
-    display: none;
-  }
-}
 
 @media (max-width: 640px) {
   .corners {
