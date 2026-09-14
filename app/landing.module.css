@@ -166,15 +166,19 @@
     width: 1.6rem;
   }
 
+  /* 2.5rem is the hard floor on her name, not a suggestion: below it the
+   * Parisienne stops reading as a signature and starts reading as small
+   * decorative type. The clamp minimum must never go under it. */
   .name {
-    font-size: clamp(2.3rem, 13.5vw, 3.7rem);
+    font-size: clamp(2.5rem, 13.5vw, 3.7rem);
   }
 }
 
 /* Phones in landscape: very little vertical room. */
 @media (max-height: 560px) and (orientation: landscape) {
+  /* Still the 2.5rem floor. Landscape is short, not an exemption. */
   .name {
-    font-size: clamp(2.2rem, 8vh, 4rem);
+    font-size: clamp(2.5rem, 8vh, 4rem);
   }
 
   .content {
@@ -302,6 +306,12 @@
 }
 
 .dashLink {
+  /* inline-flex + min-height, not more padding: the pill keeps its shape and
+   * still clears the 44px touch minimum on a phone. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   padding: 0.65rem 1.5rem;
   border-radius: 999px;
   background: var(--blue-light);
@@ -342,5 +352,21 @@
 @media (max-width: 1180px) {
   .script {
     display: none;
+  }
+}
+
+/* Sign out sits at the end of the page, deliberately quiet: this is her own
+ * tool on her own phone, so leaving it is rare and should never compete with
+ * her money for attention. */
+.signOutRow {
+  display: flex;
+  justify-content: center;
+  margin-top: 3rem;
+  animation: fadeIn 1.6s var(--ease-soft) both 1.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signOutRow {
+    animation: none;
   }
 }

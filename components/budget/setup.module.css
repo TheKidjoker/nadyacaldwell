@@ -131,6 +131,8 @@
 /* ---------- The add-slot, collapsed ---------- */
 
 .addButton {
+  /* 44px floor: this is tapped on a phone. */
+  min-height: 2.75rem;
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
@@ -231,6 +233,7 @@
 
 .input,
 .select {
+  min-height: 2.75rem;
   width: 100%;
   padding: 0.6rem 0.6rem;
   font: inherit;
@@ -255,6 +258,53 @@
   filter: invert(1);
   opacity: 0.55;
   cursor: pointer;
+}
+
+/* ---------- due-date shortcuts ---------- */
+
+/* Sit under the date field they fill, close enough to read as belonging
+ * to it, and wrap rather than scroll — seven weekdays on a narrow phone
+ * make two rows. */
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.15rem;
+}
+
+.preset {
+  /* Thumb-sized. 2.75rem is the 44px floor for a tap target, and the text
+   * is centred inside it rather than filling it. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0 0.8rem;
+  border: 1px solid var(--night-line);
+  border-radius: 0.5rem;
+  /* The same well as the fields above: these set a field's value, so they
+   * belong to it rather than to the card. --ink-soft holds 6.5:1 here. */
+  background: var(--night-deep);
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition:
+    border-color 180ms var(--ease-soft),
+    color 180ms var(--ease-soft);
+}
+
+.preset:hover {
+  border-color: var(--blue-mid);
+  color: var(--ink);
+}
+
+/* The one whose date is currently in the field. Carried by the border, not
+ * a fill, so it does not compete with the submit button. */
+.presetOn {
+  border-color: var(--blue-light);
+  color: var(--ink);
 }
 
 /* ---------- base / commission choice ---------- */
@@ -325,6 +375,7 @@
 }
 
 .submit {
+  min-height: 2.75rem;
   padding: 0.6rem 1.35rem;
   border: none;
   border-radius: 999px;
@@ -346,6 +397,7 @@
 }
 
 .cancel {
+  min-height: 2.75rem;
   padding: 0.6rem 0.4rem;
   border: none;
   background: none;
@@ -374,6 +426,7 @@
 @media (prefers-reduced-motion: reduce) {
   .addButton,
   .chip,
+  .preset,
   .submit {
     transition: none;
   }

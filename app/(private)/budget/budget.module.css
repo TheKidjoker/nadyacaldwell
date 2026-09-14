@@ -1,19 +1,35 @@
 .page {
   max-width: 40rem;
   margin: 0 auto;
-  padding: 1rem 1rem 5rem;
+  /* viewportFit is "cover", so on a notched phone -- landscape especially --
+   * the insets are real and this column would otherwise sit under the sensor
+   * housing. Same pattern as the landing shell. */
+  padding: calc(env(safe-area-inset-top, 0px) + 1rem)
+    calc(env(safe-area-inset-right, 0px) + 1rem)
+    calc(env(safe-area-inset-bottom, 0px) + 5rem)
+    calc(env(safe-area-inset-left, 0px) + 1rem);
 }
 
 .periodNav {
   display: flex;
+  /* Previous / date range / Next is ~270px of text at 375px. It fits, but
+   * only just, so it is allowed to wrap rather than to push the page wide. */
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  gap: 0.25rem 0.75rem;
   font-size: 0.85rem;
   color: var(--ink-soft);
   margin-bottom: 1.5rem;
 }
 
+/* Tap targets: bare text links are ~20px tall, well under the 44px floor.
+ * The height is bought with inline-flex rather than padding so the row's
+ * baseline rhythm is unchanged. */
 .periodNav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--ink);
 }
 
@@ -46,6 +62,9 @@
 }
 
 .emptyAction a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--blue-light);
 }
 
@@ -66,8 +85,12 @@
 
 .quickAmount,
 .quickSelect {
+  /* 1rem exactly: iOS zooms the whole page when a focused input is under
+   * 16px, and this row is sticky, so the zoom would strand it off-screen.
+   * Never drop this below 1rem to win horizontal space. */
   padding: 0.7rem 0.6rem;
   font-size: 1rem;
+  min-height: 44px;
   border-radius: 0.5rem;
   border: 1px solid var(--ink-faint);
   background: var(--night);
@@ -76,10 +99,18 @@
 }
 
 .quickAmount::placeholder {
-  color: var(--ink-faint);
+  /* --ink-faint on --night measures 3.06:1, under the 4.5:1 a hint needs.
+   * --ink-soft holds 5.50:1 on this ground -- the same swap setup.module.css
+   * already made for its own placeholders. */
+  color: var(--ink-soft);
+  opacity: 1;
 }
 
 .quickSubmit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   padding: 0.7rem 1.1rem;
   border-radius: 0.5rem;
   border: none;
@@ -118,6 +149,21 @@
   color: var(--ink-soft);
 }
 
+/* This link had no rule at all, so it was painting in the browser's default
+ * dark-mode link purple (rgb(158,158,255)) -- a colour from outside the
+ * palette, on the one page that is meant to be all Nightfall. --blue-light
+ * is 10.25:1 on --night-deep.
+ *
+ * The padding is the tap target: on an INLINE element vertical padding grows
+ * the hit box without touching the line box, so the text does not move but
+ * the target clears 44px. The negative margin keeps the horizontal bleed
+ * from nudging the words either side of it. */
+.unallocated a {
+  padding: 0.8rem 0.25rem;
+  margin: 0 -0.25rem;
+  color: var(--blue-light);
+}
+
 .envelopes {
   display: grid;
   gap: 0.75rem;
@@ -134,10 +180,15 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  gap: 1rem;
+  gap: 0.5rem 1rem;
+  /* A long category name next to a long amount is the one pairing here that
+   * can outgrow a 375px card. It wraps; it never widens the page. */
+  flex-wrap: wrap;
 }
 
 .envelopeName {
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-size: 1rem;
   color: var(--ink);
   font-weight: 500;
@@ -187,12 +238,16 @@
 
 .footerNav {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.25rem 1rem;
   padding-top: 1rem;
 }
 
 .footerNav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--ink);
 }
 

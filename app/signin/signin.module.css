@@ -50,6 +50,12 @@
 }
 
 .button {
+  /* The only control on the page, so it must be comfortably thumb-sized:
+   * inline-flex + a 44px floor, without inflating the pill's padding. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   margin-top: 2rem;
   padding: 0.65rem 1.5rem;
   border: 0;

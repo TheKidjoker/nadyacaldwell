@@ -22,6 +22,7 @@ import {
   paychecks,
   payPeriods,
   transactions,
+  user,
 } from "@/lib/db/schema";
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -267,4 +268,22 @@ export async function addGoalContribution(formData: FormData) {
   });
 
   revalidatePath("/budget/goals");
+}
+
+/**
+ * Stamps the first-run welcome as seen.
+ *
+ * Called when she taps through it, NOT when it renders. Stamping on render
+ * would let a stray refresh mid-animation burn the moment permanently; this
+ * way the failure direction is a replay, which is the harmless one.
+ */
+export async function markWelcomed() {
+  const { userId } = await verifySession();
+
+  await db
+    .update(user)
+    .set({ welcomedAt: new Date() })
+    .where(eq(user.id, userId));
+
+  revalidatePath("/");
 }

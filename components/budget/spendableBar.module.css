@@ -1,0 +1,117 @@
+/* ------------------------------------------------------------------ *
+ * The "what's left" bar.
+ *
+ * Nightfall only: every colour below is a custom property from
+ * app/globals.css. No new hex, and deliberately no prefers-color-scheme
+ * branch — this design has one theme on purpose.
+ *
+ * It renders inside .dash on the landing page, which already carries the
+ * `rise` entrance, so nothing here animates in on its own.
+ * ------------------------------------------------------------------ */
+
+.wrap {
+  max-width: 30rem;
+  margin: clamp(1.1rem, 3vh, 1.65rem) auto 0;
+  text-align: left;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.label {
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* The figure is readable as text on its own; colour never carries the
+ * overspend on its own either — the label above flips to "Overspent" and
+ * the word "over" sits between the two amounts. */
+.value,
+.valueOver {
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.value {
+  color: var(--ink);
+}
+
+.valueOver {
+  color: var(--over);
+}
+
+.amount {
+  font-weight: 600;
+}
+
+.track {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--night-line);
+}
+
+.fill,
+.fillOver {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 999px;
+  transition: width 320ms var(--ease-soft);
+}
+
+/* The bloom Chance asked for, kept to a private-bank volume: two stacked
+ * shadows of her own two blues, one tight and one wide, both pulled in with
+ * negative spread so the light falls off instead of ringing. No halo. */
+.fill {
+  background: linear-gradient(90deg, var(--blue-mid) 0%, var(--blue-light) 100%);
+  box-shadow:
+    0 0 8px -2px var(--blue-mid),
+    0 0 18px -6px var(--blue-light);
+}
+
+/* Overspend is flat. A glow reads as reward, and this is not one. */
+.fillOver {
+  background: var(--over);
+}
+
+/* The overspend phrase inside the caption. --over on --night-deep is
+ * 7.17:1, and on the lightest point of the stage gradient still 5.47:1. */
+.over {
+  color: var(--over);
+}
+
+.caption {
+  margin-top: 0.5rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The stats grid below collapses to a single 18rem column at this width.
+ * The bar has to follow it, or it overhangs the stack by ~12px a side and
+ * the whole dashboard reads as slightly off its axis on a phone. */
+@media (max-width: 480px) {
+  .wrap {
+    max-width: 18rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fill,
+  .fillOver {
+    transition: none;
+  }
+}

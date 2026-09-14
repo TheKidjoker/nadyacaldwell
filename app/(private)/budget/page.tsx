@@ -6,6 +6,7 @@ import { DEFAULT_TARGETS } from "@/lib/budget/types";
 import { formatCents } from "@/lib/budget/format";
 import { EnvelopeCard } from "@/components/budget/EnvelopeCard";
 import { QuickAdd } from "@/components/budget/QuickAdd";
+import { periodStanding } from "@/components/budget/periodStanding";
 import styles from "./budget.module.css";
 
 export default async function BudgetPage({
@@ -56,6 +57,9 @@ export default async function BudgetPage({
     targets: DEFAULT_TARGETS,
   });
 
+  /** Same figures as the home page, from the same helper. */
+  const standing = periodStanding(summary, data.categories);
+
   const index = data.periods.findIndex((p) => p.id === data.period.id);
   const prev = data.periods[index - 1];
   const next = data.periods[index + 1];
@@ -79,7 +83,27 @@ export default async function BudgetPage({
       </nav>
 
       <section className={styles.headline}>
-        {summary.safeToSpendPerDayCents === null ? (
+        {/* The same hold as the home page, from the same helper. Without it
+            this read "$0.00 a day for 9 days" the moment a bill was added,
+            which is false rather than cautious: safeToSpendPerDay divides the
+            SPENDING envelopes, and a bill never puts money in one. */}
+        {!standing.hasSpendable ? (
+          <>
+            <p className={styles.headlineNumber}>
+              {formatCents(standing.toAssignCents)}
+            </p>
+            <p className={styles.headlineLabel}>
+              to assign
+              {standing.billsStillNeededCents > 0 && (
+                <>
+                  {" "}
+                  &middot; {formatCents(standing.billsStillNeededCents)} held for
+                  bills
+                </>
+              )}
+            </p>
+          </>
+        ) : summary.safeToSpendPerDayCents === null ? (
           <>
             <p className={styles.headlineNumber}>
               {formatCents(summary.spendableRemainingCents)}
