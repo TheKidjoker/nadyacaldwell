@@ -1,0 +1,24 @@
+.cornerSprig {
+  position: absolute;
+  width: 5rem;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.topLeft {
+  top: 0;
+  left: 0.5rem;
+  transform: rotate(180deg);
+}
+
+.bottomRight {
+  bottom: 0;
+  right: 0.5rem;
+}
+
+@media (max-width: 480px) {
+  .cornerSprig {
+    width: 3.5rem;
+    opacity: 0.35;
+  }
+}
