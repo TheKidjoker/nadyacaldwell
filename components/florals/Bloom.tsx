@@ -34,15 +34,15 @@ export function Bloom({
             rx="11"
             ry="21"
             transform={`rotate(${(360 / PETALS) * i} 50 50)`}
-            fill="var(--sea-mid)"
-            fillOpacity={0.18 + fill * 0.72}
-            stroke="var(--sea-near)"
-            strokeOpacity={0.35}
+            fill="var(--blue-light)"
+            fillOpacity={0.14 + fill * 0.76}
+            stroke="var(--blue-mid)"
+            strokeOpacity={0.4}
             strokeWidth="1"
           />
         );
       })}
-      <circle cx="50" cy="50" r="9" fill="var(--sun-warm)" />
+      <circle cx="50" cy="50" r="9" fill="var(--warm)" />
     </svg>
   );
 }
