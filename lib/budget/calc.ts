@@ -1,9 +1,12 @@
-import { compareISO, daysInclusive, isWithin } from "./dates";
+import { compareISO, daysInclusive, isWithin, monthsBetween } from "./dates";
 import type { ISODate } from "./dates";
 import type {
   Allocation,
   Category,
   EnvelopeBalance,
+  Goal,
+  GoalContribution,
+  GoalProgress,
   Paycheck,
   PayPeriod,
   PeriodSummary,
@@ -144,5 +147,58 @@ export function summarizePeriod(input: {
     // Math.floor rather than round, so the number never encourages an overspend.
     safeToSpendPerDayCents:
       daysRemaining > 0 ? Math.floor(spendableRemainingCents / daysRemaining) : null,
+  };
+}
+
+export function goalProgress(input: {
+  goal: Goal;
+  contributions: GoalContribution[];
+  today: ISODate;
+}): GoalProgress {
+  const { goal, contributions, today } = input;
+
+  const savedCents = sum(
+    contributions.filter((c) => c.goalId === goal.id).map((c) => c.amountCents),
+  );
+
+  const isComplete = savedCents >= goal.targetCents;
+  const remainingCents = Math.max(0, goal.targetCents - savedCents);
+
+  const pctComplete =
+    goal.targetCents <= 0 ? 1 : Math.min(1, savedCents / goal.targetCents);
+
+  if (goal.targetDate === null) {
+    return {
+      goalId: goal.id,
+      savedCents,
+      remainingCents,
+      pctComplete,
+      isComplete,
+      monthsRemaining: null,
+      requiredPerMonthCents: null,
+      onPace: null,
+      isOverdue: false,
+    };
+  }
+
+  const monthsRemaining = monthsBetween(today, goal.targetDate);
+  const isOverdue = !isComplete && monthsRemaining < 0;
+
+  // No monthly figure to quote once the goal is met, or once the date is past.
+  const requiredPerMonthCents =
+    isComplete || monthsRemaining <= 0
+      ? null
+      : Math.ceil(remainingCents / monthsRemaining);
+
+  return {
+    goalId: goal.id,
+    savedCents,
+    remainingCents,
+    pctComplete,
+    isComplete,
+    monthsRemaining,
+    requiredPerMonthCents,
+    onPace: isComplete ? true : isOverdue ? false : null,
+    isOverdue,
   };
 }
