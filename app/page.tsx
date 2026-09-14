@@ -1,17 +1,17 @@
 import Link from "next/link";
 import { Corners } from "@/components/Corners";
 import { Hero } from "@/components/Hero";
-import { Sprig } from "@/components/florals/Sprig";
 import { Bloom } from "@/components/florals/Bloom";
-import florals from "@/components/florals/florals.module.css";
 import { getGoalsData, getPeriodData } from "@/lib/db/queries";
 import { goalProgress, summarizePeriod } from "@/lib/budget/calc";
 import { DEFAULT_TARGETS } from "@/lib/budget/types";
 import { formatCents } from "@/lib/budget/format";
+import { noteForDay } from "@/lib/notes";
 import styles from "./landing.module.css";
 
 export default async function Page() {
   const today = new Date().toISOString().slice(0, 10);
+  const note = noteForDay(today);
   const data = await getPeriodData();
   const { goals, contributions } = await getGoalsData();
 
@@ -30,14 +30,11 @@ export default async function Page() {
 
   return (
     <div className={styles.stage}>
-      <Sprig className={`${florals.cornerSprig} ${florals.topLeft}`} />
-      <Sprig className={`${florals.cornerSprig} ${florals.bottomRight}`} />
-
       <Corners />
 
       <main className={styles.content}>
         <div className={styles.contentInner}>
-          <Hero />
+          <Hero note={note} />
 
           {summary && (
             <section className={styles.dash}>

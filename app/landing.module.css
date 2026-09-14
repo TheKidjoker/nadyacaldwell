@@ -10,14 +10,9 @@
   /* No overflow rule here: globals.css already clips horizontally on html and
    * body, and any overflow-x on this element would compute overflow-y to auto,
    * nesting a second scrollbar once the dashboard outgrows the viewport. */
-  background: linear-gradient(
-    to bottom,
-    var(--sky-zenith) 0%,
-    var(--sky-upper) 22%,
-    var(--sky-mid) 45%,
-    var(--sky-low) 72%,
-    var(--horizon) 100%
-  );
+  background:
+    radial-gradient(120% 80% at 50% 0%, #122c45 0%, transparent 60%),
+    var(--night-deep);
 }
 
 /* ------------------------------------------------------------------ *
@@ -110,73 +105,36 @@
   text-align: center;
 }
 
-/* A breath of light behind the words — keeps contrast without a text shadow. */
-.contentInner::before {
-  content: "";
-  position: absolute;
-  inset: -32% -30%;
-  z-index: -1;
-  background: radial-gradient(
-    58% 52% at 50% 48%,
-    rgba(255, 255, 255, 0.72) 0%,
-    rgba(255, 255, 255, 0.36) 44%,
-    rgba(255, 255, 255, 0) 76%
-  );
-  pointer-events: none;
-}
-
 .name {
   font-family: var(--font-script), "Segoe Script", cursive;
   font-weight: 400;
+  /* The script is the only expressive thing on the page, so it earns real
+   * size. Small cursive among ornament reads sweet; one large signature in a
+   * quiet room reads considered. Never below 2.5rem. */
   font-size: clamp(3.4rem, 13vw, 7rem);
   line-height: 1.08;
-  /* The script face carries its own slant and flourish, so the tracking and
-   * uppercasing the serif wordmark needed would only crowd it. */
   letter-spacing: 0.01em;
   color: var(--ink);
   animation: rise 1.3s var(--ease-soft) both 0.15s;
 }
 
-.rule {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.85rem;
-  margin: clamp(1.5rem, 3.4vh, 2.6rem) auto clamp(1.2rem, 2.6vh, 1.9rem);
-  width: min(20rem, 62%);
-  color: var(--ink-faint);
-  animation: rise 1.1s var(--ease-soft) both 0.62s;
-}
-
-.rule span {
-  display: block;
+.hairline {
+  width: 2.6rem;
   height: 1px;
-  flex: 1;
-  background: linear-gradient(90deg, transparent, currentColor);
-  opacity: 0.7;
+  margin: 1rem auto 0;
+  background: var(--warm);
+  opacity: 0.8;
+  animation: rise 1.1s var(--ease-soft) both 0.5s;
 }
 
-.rule span + span {
-  background: linear-gradient(90deg, currentColor, transparent);
-}
-
-.rule::before {
-  content: "";
-  order: 1;
-  width: 5px;
-  height: 5px;
-  flex: none;
-  rotate: 45deg;
-  background: currentColor;
-  opacity: 0.65;
-}
-
-.rule span:first-child {
-  order: 0;
-}
-
-.rule span:last-child {
-  order: 2;
+.note {
+  margin: 1.4rem auto 0;
+  max-width: 24rem;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  animation: rise 1.15s var(--ease-soft) both 0.7s;
 }
 
 @keyframes rise {
@@ -214,16 +172,6 @@
 
   .name {
     font-size: clamp(2.3rem, 13.5vw, 3.7rem);
-  }
-
-  /* More light behind the type: phone screens get read outdoors. */
-  .contentInner::before {
-    background: radial-gradient(
-      66% 56% at 50% 48%,
-      rgba(255, 255, 255, 0.82) 0%,
-      rgba(255, 255, 255, 0.44) 46%,
-      rgba(255, 255, 255, 0) 78%
-    );
   }
 }
 
