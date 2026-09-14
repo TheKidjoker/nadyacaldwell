@@ -264,6 +264,7 @@ describe("envelopeBalance — bill set-asides", () => {
 });
 
 import { summarizePeriod } from "./calc";
+import { formatCents } from "./format";
 import { DEFAULT_TARGETS } from "./types";
 import type { Paycheck } from "./types";
 
@@ -413,5 +414,200 @@ describe("summarizePeriod", () => {
     });
 
     expect(r.daysRemaining).toBe(14);
+  });
+});
+
+/**
+ * Where the paycheck stands.
+ *
+ * These five figures used to live in `components/budget/periodStanding.ts`,
+ * derived a second time beside the two pages that render them. They are the
+ * same arithmetic, now computed once beside the balances they sum over, so
+ * the tests below are the contract both headlines read.
+ */
+describe("summarizePeriod — where the paycheck stands", () => {
+  it("counts carried-in money as available, not just this period's allocation", () => {
+    const r = summarizePeriod({
+      period,
+      paychecks: [check("k1", "2026-09-11", 120_000, "base")],
+      categories: [spending({ carryover: true })],
+      allocations: [alloc(priorPeriod, "c1", 5_000), alloc("p2", "c1", 20_000)],
+      transactions: [txn("t1", "c1", "2026-09-12", 3_000)],
+      targets: DEFAULT_TARGETS,
+      today: "2026-09-12",
+    });
+
+    expect(r.spendableAvailableCents).toBe(25_000);
+    expect(r.spendableSpentCents).toBe(3_000);
+    // available - spent is exactly the spendable headline, so the two can
+    // never disagree about the same envelope.
+    expect(r.spendableRemainingCents).toBe(
+      r.spendableAvailableCents - r.spendableSpentCents,
+    );
+  });
+
+  it("holds hasSpendable false until a spending envelope is funded", () => {
+    const r = summarizePeriod({
+      period,
+      paychecks: [check("k1", "2026-09-11", 120_000, "base")],
+      categories: [spending()],
+      allocations: [],
+      transactions: [],
+      targets: DEFAULT_TARGETS,
+      today: "2026-09-11",
+    });
+
+    expect(r.hasSpendable).toBe(false);
+  });
+
+  it("does NOT let a bill release the daily number", () => {
+    // A bill only ever takes money out of the spendable pool. Releasing the
+    // hold on one flipped the headline to a false "$0.00 a day".
+    const r = summarizePeriod({
+      period,
+      paychecks: [check("k1", "2026-09-11", 120_000, "base")],
+      categories: [bill()],
+      allocations: [alloc("p2", "c2", 55_385)],
+      transactions: [],
+      targets: DEFAULT_TARGETS,
+      today: "2026-09-11",
+    });
+
+    expect(r.spendableAvailableCents).toBe(0);
+    expect(r.hasSpendable).toBe(false);
+  });
+
+  it("counts the per-check set-aside as still needed until it is allocated", () => {
+    // Rent at $1,200 monthly: 120000 * 12 / 26 = 55,384.6 -> 55,385.
+    const base = {
+      period,
+      paychecks: [check("k1", "2026-09-11", 120_000, "base")],
+      categories: [bill()],
+      transactions: [],
+      targets: DEFAULT_TARGETS,
+      today: "2026-09-11",
+    };
+
+    const before = summarizePeriod({ ...base, allocations: [] });
+    expect(before.billsStillNeededCents).toBe(55_385);
+
+    const after = summarizePeriod({
+      ...base,
+      allocations: [alloc("p2", "c2", 55_385)],
+    });
+    // The same dollar must not be counted twice the day it lands.
+    expect(after.billsStillNeededCents).toBe(0);
+  });
+
+  it("never reports a negative bills-still-needed once over-funded", () => {
+    const r = summarizePeriod({
+      period,
+      paychecks: [check("k1", "2026-09-11", 120_000, "base")],
+      categories: [bill()],
+      allocations: [alloc("p2", "c2", 90_000)],
+      transactions: [],
+      targets: DEFAULT_TARGETS,
+      today: "2026-09-11",
+    });
+
+    expect(r.billsStillNeededCents).toBe(0);
+  });
+
+  it("takes what the bills still need out of what there is to assign", () => {
+    const r = summarizePeriod({
+      period,
+      paychecks: [check("k1", "2026-09-11", 120_000, "base")],
+      categories: [spending(), bill()],
+      allocations: [],
+      transactions: [],
+      targets: DEFAULT_TARGETS,
+      today: "2026-09-11",
+    });
+
+    expect(r.unallocatedCents).toBe(120_000);
+    expect(r.toAssignCents).toBe(120_000 - 55_385);
+  });
+
+  it("clamps toAssign at zero rather than showing a negative axis", () => {
+    const r = summarizePeriod({
+      period,
+      paychecks: [check("k1", "2026-09-11", 50_000, "base")],
+      categories: [spending(), bill()],
+      allocations: [alloc("p2", "c1", 70_000)],
+      transactions: [],
+      targets: DEFAULT_TARGETS,
+      today: "2026-09-11",
+    });
+
+    expect(r.unallocatedCents).toBe(-20_000);
+    expect(r.toAssignCents).toBe(0);
+  });
+
+  it("reads $704.92 to assign for her real rows", () => {
+    // One $1,200 paycheck; Rent $700 monthly; Daycare $86 weekly.
+    //   rent    70000 * 12 / 26 = 32,307.69 -> 32,308
+    //   daycare  8600 * 52 / 26 = 17,200
+    //   held                      49,508  ($495.08)
+    //   to assign   120000 - 49508 = 70,492  ($704.92)
+    const rent = bill({
+      id: "rent",
+      name: "Rent",
+      recurringAmountCents: 70_000,
+      cadence: "monthly",
+      dueAnchor: "2026-10-01",
+    });
+    const daycare = bill({
+      id: "daycare",
+      name: "Daycare",
+      recurringAmountCents: 8_600,
+      cadence: "weekly",
+      dueAnchor: "2026-09-14",
+    });
+
+    const r = summarizePeriod({
+      period: { id: "p2", startsOn: "2026-09-09", endsOn: "2026-09-22" },
+      paychecks: [check("k1", "2026-09-09", 120_000, "base")],
+      categories: [rent, daycare],
+      allocations: [],
+      transactions: [],
+      targets: DEFAULT_TARGETS,
+      today: "2026-09-14",
+    });
+
+    expect(r.billsStillNeededCents).toBe(49_508);
+    expect(r.toAssignCents).toBe(70_492);
+    expect(formatCents(r.toAssignCents)).toBe("$704.92");
+    // And with nothing spendable, the headline is that figure rather than a
+    // daily rate of zero.
+    expect(r.hasSpendable).toBe(false);
+  });
+
+  it("makes a dollar spendable once the assign screen writes an allocation", () => {
+    // The same rows, after assigning the whole remainder to groceries.
+    const rent = bill({
+      id: "rent",
+      recurringAmountCents: 70_000,
+      cadence: "monthly",
+      dueAnchor: "2026-10-01",
+    });
+    const groceries = spending({ id: "c1", name: "Groceries" });
+
+    const r = summarizePeriod({
+      period: { id: "p2", startsOn: "2026-09-09", endsOn: "2026-09-22" },
+      paychecks: [check("k1", "2026-09-09", 120_000, "base")],
+      categories: [rent, groceries],
+      allocations: [alloc("p2", "rent", 32_308), alloc("p2", "c1", 87_692)],
+      transactions: [],
+      targets: DEFAULT_TARGETS,
+      today: "2026-09-09", // 9th through 22nd inclusive = 14 days
+    });
+
+    expect(r.billsStillNeededCents).toBe(0);
+    expect(r.unallocatedCents).toBe(0);
+    expect(r.toAssignCents).toBe(0);
+    expect(r.hasSpendable).toBe(true);
+    expect(r.spendableRemainingCents).toBe(87_692);
+    expect(r.daysRemaining).toBe(14);
+    expect(r.safeToSpendPerDayCents).toBe(6_263); // floor(87692 / 14)
   });
 });

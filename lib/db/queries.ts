@@ -10,6 +10,7 @@ import { db } from "@/lib/db";
 import { verifySession } from "@/lib/dal";
 import {
   allocations,
+  allocationTargets,
   categories,
   goalContributions,
   goals,
@@ -17,8 +18,10 @@ import {
   payPeriods,
   transactions,
 } from "@/lib/db/schema";
+import { DEFAULT_TARGETS } from "@/lib/budget/types";
 import type {
   Allocation,
+  AllocationTargets,
   Category,
   Goal,
   GoalContribution,
@@ -26,6 +29,31 @@ import type {
   PayPeriod,
   Transaction,
 } from "@/lib/budget/types";
+
+/**
+ * Her needs/wants/savings reference lines.
+ *
+ * One row per user, written only from the assign screen. No row means she has
+ * never moved them, so 50/30/20 is returned -- the default lives in one place
+ * (`DEFAULT_TARGETS`) rather than being restated per caller.
+ */
+export async function getAllocationTargets(): Promise<AllocationTargets> {
+  const { userId } = await verifySession();
+
+  const [row] = await db
+    .select()
+    .from(allocationTargets)
+    .where(eq(allocationTargets.userId, userId))
+    .limit(1);
+
+  if (!row) return DEFAULT_TARGETS;
+
+  return {
+    needsPct: row.needsPct,
+    wantsPct: row.wantsPct,
+    savingsPct: row.savingsPct,
+  };
+}
 
 /**
  * Everything one budget page render needs.
@@ -51,7 +79,7 @@ export async function getPeriodData(periodId?: string) {
 
   if (!current) return null;
 
-  const [catRows, checkRows, txnRows, allocRows] = await Promise.all([
+  const [catRows, checkRows, txnRows, allocRows, targets] = await Promise.all([
     db
       .select()
       .from(categories)
@@ -75,10 +103,12 @@ export async function getPeriodData(periodId?: string) {
           lte(payPeriods.startsOn, current.startsOn),
         ),
       ),
+    getAllocationTargets(),
   ]);
 
   return {
     period: toPeriod(current),
+    targets,
     periods: periodRows.map(toPeriod),
     categories: catRows.map(toCategory),
     paychecks: checkRows.map(toPaycheck),

@@ -20,11 +20,14 @@ export function JournalEntry({
   today,
   isFirst,
   isLast,
+  encrypted,
 }: {
   entry: NoteEntry;
   today: string;
   isFirst: boolean;
   isLast: boolean;
+  /** The section is protected, which changes what a failed save can mean. */
+  encrypted: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [armed, setArmed] = useState(false);
@@ -42,6 +45,14 @@ export function JournalEntry({
         {day && <p className={styles.entryDay}>{day}</p>}
         {entry.title && <h2 className={styles.entryTitle}>{entry.title}</h2>}
         {entry.body !== "" && <p className={styles.entryText}>{entry.body}</p>}
+        {/* Sealed, and it would not unscramble. Said out loud rather than
+            rendered as a blank entry she would think had emptied itself. */}
+        {entry.unreadable && (
+          <p className={styles.unreadable}>
+            This one wouldn&rsquo;t unscramble. The writing is still stored, but
+            something about it has been damaged and it can&rsquo;t be read back.
+          </p>
+        )}
       </div>
 
       <div className={styles.entryTools}>
@@ -75,7 +86,11 @@ export function JournalEntry({
                 await updateEntry(formData);
                 setEditing(false);
               } catch {
-                setError("That didn't save. There has to be something in it.");
+                setError(
+                  encrypted
+                    ? "That didn't save. Either it's empty, or the section locked itself — reload the page to check."
+                    : "That didn't save. There has to be something in it.",
+                );
               }
             }}
           >

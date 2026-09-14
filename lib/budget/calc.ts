@@ -102,8 +102,10 @@ function sum(values: number[]): number {
  * unallocated income, which is already counted here; adding them again would
  * count the same dollar twice.
  */
-function bucketTotals(input: {
-  categories: Category[];
+export function bucketTotals(input: {
+  /** Only `id` and `bucket` are read, so the assign screen can pass rows it
+   *  is holding in local state rather than whole category records. */
+  categories: Pick<Category, "id" | "bucket">[];
   periodAllocations: Allocation[];
   incomeCents: number;
   targets: AllocationTargets;
@@ -183,9 +185,51 @@ export function summarizePeriod(input: {
 
   // Bill set-asides are reserved, not spendable. Including them here would
   // inflate the headline number and is the one error that actively misleads.
+  const spendingEnvelopes = envelopes.filter((e) => e.kind === "spending");
+  const billEnvelopes = envelopes.filter((e) => e.kind === "bill");
+
   const spendableRemainingCents = sum(
-    envelopes.filter((e) => e.kind === "spending").map((e) => e.remainingCents),
+    spendingEnvelopes.map((e) => e.remainingCents),
   );
+
+  /**
+   * Where this paycheck stands, for the pages that have to state it plainly.
+   *
+   * Nothing below recalculates a balance: every total is a sum over the
+   * envelope balances already built above, using the same `kind` filter
+   * `spendableRemainingCents` uses, so available and remaining cannot
+   * disagree. These used to live in a component next to the two pages that
+   * needed them, which is how two headlines drift apart.
+   */
+  const spendableAvailableCents = sum(
+    spendingEnvelopes.map((e) => e.carriedInCents + e.allocatedCents),
+  );
+  const spendableSpentCents = sum(spendingEnvelopes.map((e) => e.spentCents));
+
+  /**
+   * The per-paycheck set-aside is a TARGET derived from cadence, not an
+   * allocation. Subtracting what the bill envelopes have already been given
+   * is what stops the same dollar being counted twice the day it lands.
+   */
+  const billTargetCents = sum(
+    billEnvelopes.map((e) => e.perCheckSetAsideCents ?? 0),
+  );
+  const billsAssignedCents = sum(billEnvelopes.map((e) => e.allocatedCents));
+  const billsStillNeededCents = Math.max(
+    0,
+    billTargetCents - billsAssignedCents,
+  );
+
+  const incomeCents = baseCents + commissionCents;
+  const totalAllocatedCents = sum(periodAllocations.map((a) => a.amountCents));
+  const unallocatedCents = incomeCents - totalAllocatedCents;
+
+  /**
+   * Clamped at zero: when she has assigned more than she was paid, the pages
+   * report that separately as "over-allocated", and a negative axis would only
+   * make the bar lie in a second way.
+   */
+  const toAssignCents = Math.max(0, unallocatedCents - billsStillNeededCents);
 
   const daysRemaining =
     compareISO(today, period.startsOn) < 0
@@ -193,20 +237,22 @@ export function summarizePeriod(input: {
       : daysInclusive(today, period.endsOn);
 
   return {
-    incomeCents: baseCents + commissionCents,
+    incomeCents,
     baseCents,
     commissionCents,
     envelopes,
-    totalAllocatedCents: sum(periodAllocations.map((a) => a.amountCents)),
+    totalAllocatedCents,
     totalSpentCents: sum(periodTxns.map((t) => t.amountCents)),
-    unallocatedCents:
-      baseCents +
-      commissionCents -
-      sum(periodAllocations.map((a) => a.amountCents)),
+    unallocatedCents,
     uncategorizedCents: sum(
       periodTxns.filter((t) => t.categoryId === null).map((t) => t.amountCents),
     ),
     spendableRemainingCents,
+    spendableAvailableCents,
+    spendableSpentCents,
+    billsStillNeededCents,
+    toAssignCents,
+    hasSpendable: spendableAvailableCents > 0,
     daysRemaining,
     // Math.floor rather than round, so the number never encourages an overspend.
     safeToSpendPerDayCents:
@@ -214,7 +260,7 @@ export function summarizePeriod(input: {
     buckets: bucketTotals({
       categories,
       periodAllocations,
-      incomeCents: baseCents + commissionCents,
+      incomeCents,
       targets,
     }),
   };

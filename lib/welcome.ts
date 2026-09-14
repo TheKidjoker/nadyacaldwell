@@ -13,7 +13,7 @@
  *   "Everything in here is yours to change."
  *   "Take your time. Nothing here is urgent."
  */
-export const WELCOME_LINE = "This one is yours.";
+export const WELCOME_LINE = "Built just for you.";
 
 /** The label on the only control in the welcome. */
 export const WELCOME_CONTINUE = "Begin";

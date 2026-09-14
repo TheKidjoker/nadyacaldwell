@@ -744,3 +744,251 @@
     transition: none;
   }
 }
+
+/* ------------------------------------------------------------------ *
+ * Optional per-section encryption.
+ *
+ * Same rules as everything above: every colour is a token from
+ * app/globals.css, there is no light variant and so no
+ * prefers-color-scheme branch, every control clears 44px, and every
+ * field is 16px so iOS does not zoom when she focuses it.
+ *
+ * The one thing this surface must not do is look reassuring while it
+ * says something irreversible, so the warning is given the --over
+ * border and full-size body text rather than being tucked into
+ * .slotNote-sized print.
+ * ------------------------------------------------------------------ */
+
+/* The little padlock beside a protected section's name on the index. */
+.lockBadge {
+  margin-left: 0.4rem;
+  font-size: 0.85em;
+  color: var(--blue-light);
+}
+
+/* The lock surface on a section page, under the heading. */
+.lock {
+  margin-bottom: 1.75rem;
+  padding: 0.9rem 0.9rem 1rem;
+  border: 1px solid var(--night-line);
+  border-radius: 0.9rem;
+  background: var(--night);
+  animation: rise 0.8s var(--ease-soft) both 0.1s;
+}
+
+/* Locked: the only thing on the page, so it gets the blue edge. */
+.lockShut {
+  border-color: var(--blue-mid);
+}
+
+.lockHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lockState {
+  flex: 1;
+  min-width: 10rem;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.lockStateOpen {
+  color: var(--ink);
+}
+
+.lockTitle {
+  margin: 0 0 0.3rem;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+/* Where the collapsed offer sits: above her writing, but stepped back from
+   it, so the page still opens on the page rather than on a control. */
+.lockOfferRow {
+  display: flex;
+  margin: 0 0 1.5rem;
+}
+
+/* A quiet opener for a section that has no password yet. */
+.lockOffer {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.75rem;
+  padding: 0 0.9rem;
+  border: 1px solid var(--night-line);
+  border-radius: 0.7rem;
+  background: none;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition:
+    border-color 180ms var(--ease-soft),
+    color 180ms var(--ease-soft);
+}
+
+.lockOffer:hover {
+  border-color: var(--blue-light);
+  color: var(--blue-light);
+}
+
+/* What she has to read before she can turn this on. Not small print. */
+.warn {
+  margin: 0.9rem 0 0;
+  padding: 0.85rem 0.9rem 0.95rem;
+  border: 1px solid var(--over);
+  border-radius: 0.6rem;
+  background: var(--night-deep);
+}
+
+.warnTitle {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--over);
+}
+
+.warnText {
+  margin: 0 0 0.6rem;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--ink);
+}
+
+.warnText:last-child {
+  margin-bottom: 0;
+}
+
+.warnStrong {
+  color: var(--over);
+  font-weight: 500;
+}
+
+/* The acknowledgement. A real 44px target, not a 13px tickbox. */
+.ack {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+  padding: 0.5rem 0;
+  min-height: 2.75rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.ackBox {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0.15rem 0 0;
+  accent-color: var(--blue-light);
+  cursor: pointer;
+}
+
+.pwFields {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+}
+
+.lockNote {
+  margin: 0.6rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+/* The recovery code, shown exactly once. */
+.code {
+  margin: 0.9rem 0 0;
+  padding: 0.85rem 0.9rem 0.95rem;
+  border: 1px solid var(--warm);
+  border-radius: 0.6rem;
+  background: var(--night-deep);
+}
+
+.codeText {
+  display: block;
+  margin: 0.6rem 0 0;
+  padding: 0.6rem 0.5rem;
+  border-radius: 0.5rem;
+  background: var(--night);
+  color: var(--ink);
+  font-family: ui-monospace, "SFMono-Regular", "Consolas", monospace;
+  /* Big enough to copy off the screen by hand without squinting, and it
+     must wrap rather than push the page sideways at 375px. */
+  font-size: 1.05rem;
+  letter-spacing: 0.06em;
+  line-height: 1.7;
+  text-align: center;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.codeCopied {
+  color: var(--blue-light);
+}
+
+/* A row of quiet secondary controls: lock now, change password, and so on. */
+.lockTools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.lockLink {
+  min-height: 2.75rem;
+  padding: 0 0.6rem;
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+  transition: color 180ms var(--ease-soft);
+}
+
+.lockLink:hover {
+  color: var(--blue-light);
+}
+
+.lockSub {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--night-line);
+  animation: fadeIn 0.3s var(--ease-soft) both;
+}
+
+/* An entry whose blob would not authenticate. Said plainly, not hidden. */
+.unreadable {
+  display: block;
+  margin: 0.45rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--over);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lock,
+  .lockSub {
+    animation: none;
+  }
+
+  .lockOffer,
+  .lockLink {
+    transition: none;
+  }
+}

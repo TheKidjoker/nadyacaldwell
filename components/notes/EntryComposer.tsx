@@ -21,10 +21,14 @@ export function EntryComposer({
   sectionId,
   kind,
   today,
+  encrypted,
 }: {
   sectionId: string;
   kind: NoteSectionKind;
   today: string;
+  /** A protected section can lock itself between her opening the page and
+      pressing save, which is the other thing a failure here can mean. */
+  encrypted: boolean;
 }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,9 +43,11 @@ export function EntryComposer({
       formRef.current?.reset();
     } catch {
       setError(
-        kind === "todo"
-          ? "That didn't save. Give the item some words."
-          : "That didn't save. Write something first.",
+        encrypted
+          ? "That didn't save. Either there's nothing in it, or the section locked itself while you were away — reload the page to check."
+          : kind === "todo"
+            ? "That didn't save. Give the item some words."
+            : "That didn't save. Write something first.",
       );
     } finally {
       setSaving(false);

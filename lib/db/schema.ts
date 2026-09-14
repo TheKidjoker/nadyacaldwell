@@ -231,13 +231,30 @@ export const allocationTargets = pgTable(
 // which at creation. Days she sees are `date` ('YYYY-MM-DD'); the created/
 // updated stamps are row bookkeeping and stay `timestamp`.
 //
-// SEAM — optional per-section passwords. He has not decided between hiding a
-// section behind a check (theatre against anyone holding the database) and
-// real encryption (a forgotten password destroys her entries permanently), and
-// the two want different columns: the first a password hash + salt HERE on
-// note_sections, the second a KDF salt and wrapped data key here plus
-// ciphertext columns replacing `title`/`body` on note_entries. Adding either
-// now would presuppose the answer, so neither is present.
+// OPTIONAL PER-SECTION ENCRYPTION. The seam that used to be described here is
+// now taken, and taken by the second of the two options: real encryption, not
+// a check she could be waved past. A forgotten password and a lost recovery
+// code destroy those entries permanently. `lib/notes-crypto.ts` documents the
+// scheme; what it needs from the database is:
+//
+//   note_sections   the two wrapped copies of the section's data key — one
+//                   under her password, one under a recovery code — each with
+//                   its own KDF salt, plus the scrypt parameters used. All
+//                   six columns are null together or set together; a section
+//                   is protected exactly when `enc_set_at` is not null.
+//   note_entries    `enc_title` / `enc_body` hold sealed blobs. A row is
+//                   encrypted exactly when `enc_body` is not null, and such a
+//                   row must carry no plaintext at all — the check below is
+//                   what makes "we encrypted it" mean the words are gone from
+//                   `title` and `body`, not merely copied.
+//
+// Encryption is OPT-IN and per section. Plaintext sections keep working with
+// every column below null, which is what every existing row already is.
+//
+// NOT encrypted, and not pretended to be: the section's name, how many entries
+// it holds, when each was written or edited, its order in the list, and
+// whether a to-do item is ticked. That metadata stays readable so the index
+// and the ordering still work while a section is locked.
 
 export const noteSectionKindEnum = pgEnum("note_section_kind", [
   "journal",
@@ -255,9 +272,36 @@ export const noteSections = pgTable(
     kind: noteSectionKindEnum("kind").notNull(),
     sortOrder: integer("sort_order").notNull().default(0),
     createdAt: timestamp("created_at").notNull().defaultNow(),
+
+    // --- optional encryption. Null on every section she has not protected. ---
+
+    /** When she turned protection on. Non-null IS "this section is encrypted". */
+    encSetAt: timestamp("enc_set_at"),
+    /** base64. scrypt salt for the password wrap. */
+    encSalt: text("enc_salt"),
+    /** base64. The data key, sealed under the key derived from her password. */
+    encWrappedDek: text("enc_wrapped_dek"),
+    /** base64. A separate scrypt salt for the recovery-code wrap. */
+    encRecoverySalt: text("enc_recovery_salt"),
+    /** base64. The SAME data key, sealed under the recovery code. */
+    encRecoveryWrappedDek: text("enc_recovery_wrapped_dek"),
+    /** JSON. The scrypt parameters both wraps used, so they can be raised later. */
+    encKdfParams: text("enc_kdf_params"),
   },
   (t) => [
     check("note_sections_name_present", sql`btrim(${t.name}) <> ''`),
+    // Six columns that only mean anything together. Half a set of key material
+    // is a section that cannot be opened and cannot be told it is broken.
+    check(
+      "note_sections_enc_all_or_none",
+      sql`(${t.encSetAt} IS NULL AND ${t.encSalt} IS NULL AND ${t.encWrappedDek} IS NULL AND ${t.encRecoverySalt} IS NULL AND ${t.encRecoveryWrappedDek} IS NULL AND ${t.encKdfParams} IS NULL)
+        OR (${t.encSetAt} IS NOT NULL AND ${t.encSalt} IS NOT NULL AND ${t.encWrappedDek} IS NOT NULL AND ${t.encRecoverySalt} IS NOT NULL AND ${t.encRecoveryWrappedDek} IS NOT NULL AND ${t.encKdfParams} IS NOT NULL)`,
+    ),
+    // The two salts are what stop one scrypt run from testing both wraps.
+    check(
+      "note_sections_enc_salts_differ",
+      sql`${t.encSalt} IS NULL OR ${t.encSalt} <> ${t.encRecoverySalt}`,
+    ),
     index("note_sections_user_sort_idx").on(t.userId, t.sortOrder),
   ],
 );
@@ -287,12 +331,37 @@ export const noteEntries = pgTable(
     sortOrder: integer("sort_order").notNull().default(0),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
+
+    // --- ciphertext, on rows in a protected section. Null everywhere else. ---
+
+    /** base64 sealed blob standing in for `title`. Null when she gave none. */
+    encTitle: text("enc_title"),
+    /**
+     * base64 sealed blob standing in for `body`. Non-null IS "this row is
+     * encrypted" — an empty body is still sealed, so there is one unambiguous
+     * flag rather than two half-answers.
+     */
+    encBody: text("enc_body"),
   },
   (t) => [
     // An entry has to carry something: a blank row is a bug, not a thought.
+    // An encrypted row satisfies this by holding ciphertext; what it actually
+    // says is checked before it is sealed, in lib/notes-actions.ts.
     check(
       "note_entries_not_empty",
-      sql`coalesce(btrim(${t.title}), '') <> '' OR btrim(${t.body}) <> ''`,
+      sql`${t.encBody} IS NOT NULL OR coalesce(btrim(${t.title}), '') <> '' OR btrim(${t.body}) <> ''`,
+    ),
+    // The one that makes the promise true. Encrypting an entry must MOVE the
+    // words, not copy them: if this row has ciphertext, the plaintext columns
+    // are empty, and no half-finished write can leave the original behind.
+    check(
+      "note_entries_no_plaintext_when_encrypted",
+      sql`${t.encBody} IS NULL OR (${t.title} IS NULL AND ${t.body} = '')`,
+    ),
+    // A sealed title with no sealed body would be a row nothing can classify.
+    check(
+      "note_entries_enc_title_needs_body",
+      sql`${t.encTitle} IS NULL OR ${t.encBody} IS NOT NULL`,
     ),
     // A completion date without a completion is a lie about the row.
     check(

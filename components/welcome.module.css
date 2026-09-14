@@ -1,0 +1,178 @@
+/* Every custom property here is defined in app/globals.css. An undefined one
+ * fails silently to nothing, which has shipped visual bugs in this repo four
+ * times — check before adding any. */
+
+.stage {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 2rem 1.25rem calc(2rem + env(safe-area-inset-bottom));
+  background: var(--night-deep);
+  transition: opacity 0.8s var(--ease-soft);
+}
+
+.leaving {
+  opacity: 0;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 32rem;
+}
+
+/* --- her name, written on --- */
+
+.signature {
+  margin: 0;
+  font-family: var(--font-script), "Segoe Script", cursive;
+  font-weight: 400;
+  /* The 2.5rem floor holds at every width; this never goes near it. */
+  font-size: clamp(3.4rem, 13vw, 7rem);
+  line-height: 1.08;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+
+  /* The mask is three times the width of the text, opaque at its left end and
+   * transparent at its right. Sliding it from right to left uncovers the
+   * letters in reading order, so the name appears to be written. */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    #000 0%,
+    #000 30%,
+    rgba(0, 0, 0, 0.45) 42%,
+    transparent 55%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    #000 0%,
+    #000 30%,
+    rgba(0, 0, 0, 0.45) 42%,
+    transparent 55%,
+    transparent 100%
+  );
+  -webkit-mask-size: 300% 100%;
+  mask-size: 300% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  animation: write 2.6s var(--ease-soft) both 0.5s;
+}
+
+@keyframes write {
+  from {
+    -webkit-mask-position: 100% 0;
+    mask-position: 100% 0;
+  }
+  to {
+    -webkit-mask-position: 0% 0;
+    mask-position: 0% 0;
+  }
+}
+
+/* --- the one warm hairline, drawn in after the name --- */
+
+.hairline {
+  width: min(12rem, 45vw);
+  height: 1px;
+  margin-top: 1.1rem;
+  background: var(--warm);
+  transform-origin: center;
+  animation: draw 1.1s var(--ease-soft) both 2.9s;
+}
+
+@keyframes draw {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+/* --- the line, then the way in --- */
+
+.line {
+  margin: 1.9rem 0 0;
+  color: var(--ink-soft);
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  animation: fade 1.4s var(--ease-soft) both 3.7s;
+}
+
+.actions {
+  margin-top: 2.6rem;
+  animation: fade 1.4s var(--ease-soft) both 4.4s;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+    transform: translateY(0.6rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.begin {
+  appearance: none;
+  border: 1px solid var(--blue-mid);
+  border-radius: 999px;
+  background: var(--blue-light);
+
+  /* 44px floor: this is tapped on a phone. */
+  min-height: 2.75rem;
+  padding: 0 2.2rem;
+
+  /* Dark ink on the light fill — the reverse of everything else on the site,
+   * because a --blue-light background would leave pale text unreadable. */
+  color: var(--night-deep);
+  font: inherit;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition:
+    background-color 0.4s var(--ease-soft),
+    transform 0.4s var(--ease-soft);
+}
+
+.begin:hover {
+  background: var(--ink);
+}
+
+.begin:focus-visible {
+  outline: 2px solid var(--blue-light);
+  outline-offset: 3px;
+}
+
+/* Everything above is ornament. Under reduced motion the whole sequence
+ * collapses to the finished state, immediately — no sweep, no draw, no
+ * stagger. She still gets the words and the way in. */
+@media (prefers-reduced-motion: reduce) {
+  .stage,
+  .signature,
+  .hairline,
+  .line,
+  .actions,
+  .begin {
+    animation: none;
+    transition: none;
+  }
+
+  .signature {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .hairline {
+    transform: none;
+    opacity: 1;
+  }
+}

@@ -218,6 +218,27 @@
   color: var(--ink);
 }
 
+/* The headline becomes a door when there is something behind it. It keeps the
+ * headline's exact shape -- no pill, no shrink -- so the dashboard reads the
+ * same and simply becomes tappable. The whole block is the target, which is
+ * far past the 44px floor on its own. */
+.dashAction {
+  display: block;
+  padding: 0.25rem 0;
+  border-radius: 0.75rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.dashAction .dashNumber,
+.dashAction .dashLabel {
+  display: block;
+}
+
+.dashAction:hover .dashLabel {
+  color: var(--blue-light);
+}
+
 .stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -343,7 +364,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .goalChip,
-  .dashLink {
+  .dashLink,
+  .dashAction .dashLabel {
     transition: none;
   }
 }

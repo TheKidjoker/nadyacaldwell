@@ -47,7 +47,16 @@ export function SectionCard({
     <li className={styles.sectionCard}>
       <div className={styles.sectionMain}>
         <Link href={`/notes/${section.id}`} className={styles.sectionLink}>
-          <span className={styles.sectionName}>{section.name}</span>
+          <span className={styles.sectionName}>
+            {section.name}
+            {/* Says a section is protected, not whether it is open right now:
+                that is per-browser and this list is rendered once. */}
+            {section.encrypted && (
+              <span className={styles.lockBadge} aria-label="Password protected">
+                <span aria-hidden="true">&#128274;</span>
+              </span>
+            )}
+          </span>
           <span className={styles.sectionMeta}>
             {summarizeSection(
               section.kind,

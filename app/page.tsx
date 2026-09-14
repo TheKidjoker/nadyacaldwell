@@ -4,18 +4,18 @@ import { headers } from "next/headers";
 import { Corners } from "@/components/Corners";
 import { TopNav } from "@/components/TopNav";
 import { SignOutButton } from "@/components/SignOutButton";
+import { Welcome } from "@/components/Welcome";
 import { Hero } from "@/components/Hero";
 import { Bloom } from "@/components/florals/Bloom";
 import { AddBillSlot, AddSpendingSlot } from "@/components/budget/AddSlot";
 import { BillRow } from "@/components/budget/BillRow";
 import { PaycheckGate } from "@/components/budget/PaycheckGate";
 import { SpendableBar } from "@/components/budget/SpendableBar";
-import { periodStanding } from "@/components/budget/periodStanding";
 import { auth } from "@/lib/auth";
+import { hasSeenWelcome } from "@/lib/db/welcome";
 import { getGoalsData, getPeriodData } from "@/lib/db/queries";
 import { goalProgress, summarizePeriod } from "@/lib/budget/calc";
 import { perCheckSetAside } from "@/lib/budget/recurrence";
-import { DEFAULT_TARGETS } from "@/lib/budget/types";
 import { formatCents } from "@/lib/budget/format";
 import { noteForDay } from "@/lib/notes";
 import styles from "./landing.module.css";
@@ -85,6 +85,14 @@ export default async function Page() {
     );
   }
 
+  // --- The first run, once in her life. ---
+  // Deliberately above every other signed-in branch and outside the Shell:
+  // it owns the whole screen, and it renders its own name rather than sitting
+  // under Hero's, which would show the wordmark twice.
+  if (!(await hasSeenWelcome(session.user.id))) {
+    return <Welcome />;
+  }
+
   const data = await getPeriodData();
 
   // --- State B: signed in, nothing to compute from yet. ---
@@ -101,6 +109,17 @@ export default async function Page() {
   // --- State C: the dashboard. ---
   const { goals, contributions } = await getGoalsData();
 
+  /**
+   * Where this paycheck stands comes straight off `summary`. `/budget` reads
+   * the same fields off the same call, so the two headlines cannot drift
+   * apart -- these used to be re-derived in a component beside both pages.
+   *
+   * The daily-number hold lives in `summary.hasSpendable`: it turns on whether
+   * a spendable figure can honestly exist, NOT on whether a category row does.
+   * Adding a bill must not release it -- a bill only ever takes money out of
+   * the spendable pool, so releasing on one flipped the headline straight to a
+   * false "$0.00 a day".
+   */
   const summary = summarizePeriod({
     period: data.period,
     paychecks: data.paychecks,
@@ -108,8 +127,7 @@ export default async function Page() {
     allocations: data.allocations,
     transactions: data.transactions,
     today,
-    // Until Task 9 reads her saved targets from the database.
-    targets: DEFAULT_TARGETS,
+    targets: data.targets,
   });
 
   const bills = data.categories.filter((c) => c.kind === "bill");
@@ -124,18 +142,6 @@ export default async function Page() {
     0,
   );
 
-  /**
-   * Where this paycheck stands. `/budget` derives the same figures from the
-   * same helper, so the two headlines cannot drift apart.
-   *
-   * The daily-number hold now lives in `hasSpendable`: it turns on whether a
-   * spendable figure can honestly exist, NOT on whether a category row does.
-   * Adding a bill must not release it -- a bill only ever takes money out of
-   * the spendable pool, so releasing on one flipped the headline straight to
-   * a false "$0.00 a day".
-   */
-  const standing = periodStanding(summary, data.categories);
-
   /** Nothing entered at all -- the original "tell me about your bills" state. */
   const preSetup = bills.length === 0 && spending.length === 0;
 
@@ -147,18 +153,20 @@ export default async function Page() {
             <p className={styles.dashNumber}>$--.--</p>
             <p className={styles.dashLabel}>once your bills are in</p>
           </>
-        ) : !standing.hasSpendable ? (
+        ) : !summary.hasSpendable ? (
           /* Bills are in but nothing is assigned to spend yet. There is no
              honest daily figure, so the headline shows the money that is
-             genuinely hers to direct and names it for what it is. */
-          <>
-            <p className={styles.dashNumber}>
-              {formatCents(standing.toAssignCents)}
-            </p>
+             genuinely hers to direct, names it for what it is, and -- the
+             whole point -- goes somewhere. A figure labelled "to assign" that
+             links nowhere is a instruction with no door attached. */
+          <Link href="/budget/assign" className={styles.dashAction}>
+            <span className={styles.dashNumber}>
+              {formatCents(summary.toAssignCents)}
+            </span>
             {/* Terse on purpose: the bar directly below breaks the paycheck
                 down, and repeating the bills figure here said it twice. */}
-            <p className={styles.dashLabel}>to assign</p>
-          </>
+            <span className={styles.dashLabel}>to assign &rarr;</span>
+          </Link>
         ) : summary.safeToSpendPerDayCents === null ? (
           <>
             <p className={styles.dashNumber}>
@@ -186,9 +194,9 @@ export default async function Page() {
         <SpendableBar
           period={data.period}
           inEnvelopesCents={summary.spendableRemainingCents}
-          toAssignCents={standing.toAssignCents}
-          spentCents={standing.spendableSpentCents}
-          heldForBillsCents={standing.billsStillNeededCents}
+          toAssignCents={summary.toAssignCents}
+          spentCents={summary.spendableSpentCents}
+          heldForBillsCents={summary.billsStillNeededCents}
         />
 
         <dl className={styles.stats}>
@@ -285,6 +293,9 @@ export default async function Page() {
       )}
 
       <nav className={styles.dashLinks}>
+        <Link href="/budget/assign" className={styles.dashLink}>
+          Assign this paycheck
+        </Link>
         <Link href="/budget" className={styles.dashLink}>
           Budget
         </Link>

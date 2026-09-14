@@ -102,6 +102,24 @@ export interface PeriodSummary {
   uncategorizedCents: number;
   /** Spending envelopes only — bill set-asides are not hers to spend. */
   spendableRemainingCents: number;
+  /** Assigned to spending envelopes this period, plus anything carried in. */
+  spendableAvailableCents: number;
+  /** Spent out of those spending envelopes during this period. */
+  spendableSpentCents: number;
+  /** What this paycheck still owes the bills, after any bill allocations. */
+  billsStillNeededCents: number;
+  /** Income assigned nowhere and owed to no bill. Never negative. */
+  toAssignCents: number;
+  /**
+   * Can an honest "safe to spend per day" exist yet?
+   *
+   * safeToSpendPerDayCents divides the SPENDING envelopes by the days left, so
+   * until one of them holds money the quotient is $0.00 a day — not a cautious
+   * number, a false one, and the most alarming thing a page could say to
+   * someone who was just paid. Adding a BILL must never flip this true: a bill
+   * can only take money out of the spendable pool.
+   */
+  hasSpendable: boolean;
   /** today through endsOn, inclusive. 0 once the period has passed. */
   daysRemaining: number;
   /** null when daysRemaining is 0, rather than dividing by zero. */

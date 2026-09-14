@@ -1,4 +1,4 @@
-import { formatCents } from "@/lib/budget/format";
+import { formatCents, formatShortDate } from "@/lib/budget/format";
 import type { PayPeriod } from "@/lib/budget/types";
 import styles from "./spendableBar.module.css";
 
@@ -25,18 +25,6 @@ import styles from "./spendableBar.module.css";
  * `summarizePeriod` returned. This component does no budget arithmetic; the
  * only sums below are the bar's own geometry.
  */
-
-const MONTHS = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-];
-
-/** 'YYYY-MM-DD' -> 'Sep 1'. String slicing only; no Date, so no timezone. */
-function shortDate(iso: string): string {
-  const [, month, day] = iso.split("-");
-  const name = MONTHS[Number(month) - 1];
-  return name ? `${name} ${Number(day)}` : iso;
-}
 
 export function SpendableBar({
   period,
@@ -77,7 +65,9 @@ export function SpendableBar({
   // "nothing left" and "nothing set up" never look identical.
   const fillPct = empty && overspent ? 100 : pctLeft;
 
-  const periodLabel = `${shortDate(period.startsOn)} – ${shortDate(period.endsOn)}`;
+  // Formatted from the ISO string, never parsed into a Date: this label is a
+  // calendar day, and a Date would move it a timezone west.
+  const periodLabel = `${formatShortDate(period.startsOn)} – ${formatShortDate(period.endsOn)}`;
 
   const valueText = nothingYet
     ? "Nothing to spend in this pay period yet"

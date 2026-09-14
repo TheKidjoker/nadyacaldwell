@@ -2,11 +2,9 @@ import Link from "next/link";
 import { verifySession } from "@/lib/dal";
 import { getPeriodData } from "@/lib/db/queries";
 import { summarizePeriod } from "@/lib/budget/calc";
-import { DEFAULT_TARGETS } from "@/lib/budget/types";
 import { formatCents } from "@/lib/budget/format";
 import { EnvelopeCard } from "@/components/budget/EnvelopeCard";
 import { QuickAdd } from "@/components/budget/QuickAdd";
-import { periodStanding } from "@/components/budget/periodStanding";
 import styles from "./budget.module.css";
 
 export default async function BudgetPage({
@@ -53,12 +51,8 @@ export default async function BudgetPage({
     allocations: data.allocations,
     transactions: data.transactions,
     today,
-    // Until Task 9 reads her saved targets from the database.
-    targets: DEFAULT_TARGETS,
+    targets: data.targets,
   });
-
-  /** Same figures as the home page, from the same helper. */
-  const standing = periodStanding(summary, data.categories);
 
   const index = data.periods.findIndex((p) => p.id === data.period.id);
   const prev = data.periods[index - 1];
@@ -83,26 +77,29 @@ export default async function BudgetPage({
       </nav>
 
       <section className={styles.headline}>
-        {/* The same hold as the home page, from the same helper. Without it
+        {/* The same hold as the home page, off the same summary. Without it
             this read "$0.00 a day for 9 days" the moment a bill was added,
             which is false rather than cautious: safeToSpendPerDay divides the
             SPENDING envelopes, and a bill never puts money in one. */}
-        {!standing.hasSpendable ? (
-          <>
-            <p className={styles.headlineNumber}>
-              {formatCents(standing.toAssignCents)}
-            </p>
-            <p className={styles.headlineLabel}>
+        {!summary.hasSpendable ? (
+          /* The figure is also the way in: "to assign" that links nowhere is
+             an instruction with no door attached. */
+          <Link href="/budget/assign" className={styles.headlineAction}>
+            <span className={styles.headlineNumber}>
+              {formatCents(summary.toAssignCents)}
+            </span>
+            <span className={styles.headlineLabel}>
               to assign
-              {standing.billsStillNeededCents > 0 && (
+              {summary.billsStillNeededCents > 0 && (
                 <>
                   {" "}
-                  &middot; {formatCents(standing.billsStillNeededCents)} held for
+                  &middot; {formatCents(summary.billsStillNeededCents)} held for
                   bills
                 </>
-              )}
-            </p>
-          </>
+              )}{" "}
+              &rarr;
+            </span>
+          </Link>
         ) : summary.safeToSpendPerDayCents === null ? (
           <>
             <p className={styles.headlineNumber}>
@@ -176,6 +173,7 @@ export default async function BudgetPage({
 
       <nav className={styles.footerNav}>
         <Link href="/">&larr; Home</Link>
+        <Link href="/budget/assign">Assign this paycheck</Link>
         <Link href="/budget/goals">Savings goals &rarr;</Link>
       </nav>
     </main>

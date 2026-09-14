@@ -19,10 +19,13 @@ export function TodoItem({
   entry,
   isFirst,
   isLast,
+  encrypted,
 }: {
   entry: NoteEntry;
   isFirst: boolean;
   isLast: boolean;
+  /** The section is protected, which changes what a failed save can mean. */
+  encrypted: boolean;
 }) {
   const [done, setDone] = useOptimistic(entry.done);
   const [editing, setEditing] = useState(false);
@@ -74,6 +77,11 @@ export function TodoItem({
           {entry.body !== "" && (
             <span className={styles.todoNote}>{entry.body}</span>
           )}
+          {entry.unreadable && (
+            <span className={styles.unreadable}>
+              This one wouldn&rsquo;t unscramble.
+            </span>
+          )}
         </p>
 
         <div className={styles.todoTools}>
@@ -108,7 +116,11 @@ export function TodoItem({
                 await updateEntry(formData);
                 setEditing(false);
               } catch {
-                setError("That didn't save. The item needs some words.");
+                setError(
+                  encrypted
+                    ? "That didn't save. Either it's empty, or the section locked itself — reload the page to check."
+                    : "That didn't save. The item needs some words.",
+                );
               }
             }}
           >

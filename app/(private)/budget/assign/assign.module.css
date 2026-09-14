@@ -1,0 +1,535 @@
+/* ------------------------------------------------------------------ *
+ * The assign screen.
+ *
+ * Every colour is a custom property from app/globals.css. Nightfall is a
+ * dark design rather than a dark mode, so there is deliberately no
+ * prefers-color-scheme branch below — only a reduced-motion one.
+ *
+ * The rule that shapes this file: while she is typing, ONLY derived text
+ * and bar widths may change. Every block that can be empty reserves its
+ * height, nothing re-orders, and every number column is tabular so the
+ * digits do not shuffle under each other.
+ * ------------------------------------------------------------------ */
+
+.page {
+  max-width: 40rem;
+  margin: 0 auto;
+  /* viewportFit is "cover": on a notched phone the insets are real, and this
+   * column would otherwise sit under the sensor housing. Same as /budget. */
+  padding: calc(env(safe-area-inset-top, 0px) + 1rem)
+    calc(env(safe-area-inset-right, 0px) + 1rem)
+    calc(env(safe-area-inset-bottom, 0px) + 5rem)
+    calc(env(safe-area-inset-left, 0px) + 1rem);
+}
+
+.topNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Bare text links are ~20px tall, under the 44px floor. The height is bought
+ * with inline-flex rather than padding so the row's rhythm is unchanged. */
+.topNav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ink);
+}
+
+.title {
+  font-size: 1.55rem;
+  font-weight: 300;
+  line-height: 1.2;
+  color: var(--ink);
+  animation: rise 0.9s var(--ease-soft) both 0.05s;
+}
+
+.lede {
+  margin-top: 0.4rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  animation: rise 0.9s var(--ease-soft) both 0.12s;
+}
+
+.section {
+  margin-top: 1.75rem;
+  animation: fadeIn 0.9s var(--ease-soft) both 0.2s;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.sectionNote {
+  margin-top: 0.5rem;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+/* ---------- Bills, read-only ---------- */
+
+.bills {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.billItem {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  column-gap: 1rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--night-line);
+  border-radius: 0.7rem;
+  background: var(--night);
+}
+
+.billName {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--ink);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.billAmount {
+  font-size: 0.95rem;
+  color: var(--ink);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.billMeta,
+.billAmountLabel {
+  grid-row: 2;
+  margin-top: 0.15rem;
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.billAmountLabel {
+  text-align: right;
+}
+
+.billsTotal {
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.billsTotalValue {
+  color: var(--ink);
+}
+
+/* ---------- The live summary ---------- */
+
+/* The two numbers she is steering by, placed directly above the fields that
+ * change them.
+ *
+ * NOT sticky. It was, and it silently never pinned: `html, body { overflow-x:
+ * hidden }` in globals.css forces body to compute `overflow-y: auto`, which
+ * makes body the nearest scroll container while `html` is what actually
+ * scrolls -- and a sticky element inside a container that never scrolls never
+ * sticks. Proximity does the same job with nothing to go wrong. */
+.summary {
+  margin-top: 1.75rem;
+  padding: 0.85rem 1rem 0.9rem;
+  border: 1px solid var(--night-line);
+  border-radius: 0.85rem;
+  background: var(--night);
+  box-shadow: 0 6px 20px rgb(2 8 16 / 0.55);
+}
+
+.summaryLabel {
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.summaryValue,
+.summaryValueOver {
+  margin-top: 0.15rem;
+  font-size: clamp(1.9rem, 9vw, 2.4rem);
+  font-weight: 200;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+
+.summaryValue {
+  color: var(--ink);
+}
+
+/* Over-assigned is never carried by colour alone: the label above this number
+ * reads "over-assigned" and the note below says it again in words. */
+.summaryValueOver {
+  color: var(--over);
+}
+
+.summaryPerDay {
+  /* Reserved whether or not there is a figure, so the card does not resize
+   * under her thumb on the first keystroke. */
+  min-height: 2.6rem;
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  line-height: 1.3;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.summaryPerDayValue {
+  color: var(--blue-light);
+  font-weight: 500;
+}
+
+.summaryOverNote {
+  color: var(--over);
+}
+
+/* ---------- Envelope rows ---------- */
+
+.rows {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 7.5rem;
+  align-items: center;
+  column-gap: 0.75rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--night-line);
+  border-radius: 0.7rem;
+  background: var(--night);
+}
+
+.rowName {
+  font-size: 0.95rem;
+  color: var(--ink);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rowMeta {
+  grid-column: 1;
+  grid-row: 2;
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.rowField {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.currency {
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+}
+
+.input {
+  min-height: 2.75rem;
+  width: 100%;
+  padding: 0.5rem 0.55rem;
+  font: inherit;
+  /* 1rem exactly. iOS zooms the whole page when a focused input is under
+   * 16px, which would push the summary above it out of view mid-keystroke.
+   * Never drop this below 1rem to win horizontal space. */
+  font-size: 1rem;
+  text-align: right;
+  border-radius: 0.5rem;
+  border: 1px solid var(--ink-faint);
+  /* Deeper than the row it sits on, so the field reads as a well. */
+  background: var(--night-deep);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  min-width: 0;
+}
+
+.input::placeholder {
+  /* --ink-faint would drop the hint to ~3:1; --ink-soft holds 5.5:1. */
+  color: var(--ink-soft);
+  opacity: 1;
+}
+
+/* ---------- Actions ---------- */
+
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.submit {
+  min-height: 2.75rem;
+  padding: 0.6rem 1.5rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--blue-light);
+  color: var(--night-deep);
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 180ms var(--ease-soft);
+}
+
+.submit:hover {
+  background: var(--blue-mid);
+}
+
+.submit:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.status {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+.error {
+  margin-top: 0.6rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--over);
+}
+
+/* ---------- The 50/30/20 lens ---------- */
+
+.buckets {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 0.85rem;
+}
+
+.bucketRow {
+  display: grid;
+  grid-template-columns: 4.25rem 1fr 4.75rem;
+  align-items: center;
+  column-gap: 0.7rem;
+}
+
+.bucketLabel {
+  font-size: 0.85rem;
+  color: var(--ink);
+}
+
+.bucketTrack {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--night-line);
+}
+
+.bucketFill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--blue-light);
+  transition: width 220ms var(--ease-soft);
+}
+
+/* A reference line, not a pass mark. Never coloured as a warning: her needs
+ * share will sit above it for as long as she has a child and a car, and that
+ * is arithmetic rather than behaviour. */
+.bucketTarget {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--ink-soft);
+  transition: left 220ms var(--ease-soft);
+}
+
+.bucketValue {
+  display: grid;
+  justify-items: end;
+  text-align: right;
+  font-size: 0.85rem;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.bucketCents {
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
+.bucketsNote {
+  /* Two lines reserved: the over-assigned sentence appears here as she
+   * types past her paycheck, and must not shove the bars upward. */
+  min-height: 2.4rem;
+  margin-top: 0.75rem;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Editing the targets ---------- */
+
+.targetsToggle {
+  min-height: 2.75rem;
+  margin-top: 0.2rem;
+  padding: 0.55rem 0;
+  border: none;
+  background: none;
+  color: var(--blue-light);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.targetsForm {
+  margin-top: 0.4rem;
+  padding: 0.85rem 0.9rem 0.95rem;
+  border: 1px solid var(--night-line);
+  border-radius: 0.7rem;
+  background: var(--night);
+}
+
+.targetsFields {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.55rem;
+}
+
+.targetField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.targetLabel {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.targetInput {
+  min-height: 2.75rem;
+  width: 100%;
+  padding: 0.5rem 0.55rem;
+  font: inherit;
+  font-size: 1rem;
+  text-align: right;
+  border-radius: 0.5rem;
+  border: 1px solid var(--ink-faint);
+  background: var(--night-deep);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  min-width: 0;
+}
+
+.targetsSum,
+.targetsSumBad {
+  min-height: 1.3rem;
+  margin-top: 0.6rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+
+.targetsSum {
+  color: var(--ink-soft);
+}
+
+.targetsSumBad {
+  color: var(--over);
+}
+
+/* ---------- Empty state ---------- */
+
+.empty {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.footerNav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  margin-top: 2.5rem;
+}
+
+.footerNav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ink);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (min-width: 40rem) {
+  .page {
+    padding: 2rem 1.5rem 5rem;
+  }
+
+  .title {
+    font-size: 1.85rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title,
+  .lede,
+  .section {
+    animation: none;
+  }
+
+  .bucketFill,
+  .bucketTarget,
+  .submit {
+    transition: none;
+  }
+}
