@@ -3,6 +3,9 @@ import { nextOccurrence, perCheckSetAside } from "./recurrence";
 import type { ISODate } from "./dates";
 import type {
   Allocation,
+  AllocationTargets,
+  Bucket,
+  BucketTotals,
   Category,
   EnvelopeBalance,
   Goal,
@@ -88,6 +91,62 @@ function sum(values: number[]): number {
   return values.reduce((total, v) => total + v, 0);
 }
 
+/**
+ * Split this period's allocations into needs/wants/savings.
+ *
+ * Unallocated income counts as savings -- money she has not assigned is money
+ * she has not spent -- which is also what makes the three buckets sum to
+ * exactly her income, so the bars never leave an unexplained gap.
+ *
+ * Goal contributions are NOT added separately. They are funded out of
+ * unallocated income, which is already counted here; adding them again would
+ * count the same dollar twice.
+ */
+function bucketTotals(input: {
+  categories: Category[];
+  periodAllocations: Allocation[];
+  incomeCents: number;
+  targets: AllocationTargets;
+}): BucketTotals {
+  const { categories, periodAllocations, incomeCents, targets } = input;
+
+  const bucketOf = new Map(categories.map((c) => [c.id, c.bucket]));
+  const totalFor = (bucket: Bucket) =>
+    sum(
+      periodAllocations
+        .filter((a) => bucketOf.get(a.categoryId) === bucket)
+        .map((a) => a.amountCents),
+    );
+
+  const needsCents = totalFor("needs");
+  const wantsCents = totalFor("wants");
+  const savingsAllocated = totalFor("savings");
+
+  const totalAllocated = sum(periodAllocations.map((a) => a.amountCents));
+  const unallocated = incomeCents - totalAllocated;
+  const overAllocated = unallocated < 0;
+
+  const savingsCents = overAllocated
+    ? savingsAllocated
+    : savingsAllocated + unallocated;
+
+  // When she has assigned more than she was paid there is no surplus to
+  // measure against income, so the shares are of what she actually assigned.
+  const denominator = overAllocated ? totalAllocated : incomeCents;
+  const share = (cents: number) => (denominator > 0 ? cents / denominator : 0);
+
+  return {
+    needsCents,
+    wantsCents,
+    savingsCents,
+    needsPct: share(needsCents),
+    wantsPct: share(wantsCents),
+    savingsPct: share(savingsCents),
+    targets,
+    overAllocated,
+  };
+}
+
 export function summarizePeriod(input: {
   period: PayPeriod;
   paychecks: Paycheck[];
@@ -95,8 +154,10 @@ export function summarizePeriod(input: {
   allocations: Allocation[];
   transactions: Transaction[];
   today: ISODate;
+  targets: AllocationTargets;
 }): PeriodSummary {
-  const { period, paychecks, categories, allocations, transactions, today } = input;
+  const { period, paychecks, categories, allocations, transactions, today, targets } =
+    input;
 
   const inPeriod = paychecks.filter((p) =>
     isWithin(p.receivedOn, period.startsOn, period.endsOn),
@@ -116,6 +177,10 @@ export function summarizePeriod(input: {
     isWithin(t.occurredOn, period.startsOn, period.endsOn),
   );
 
+  const periodAllocations = allocations.filter(
+    (a) => a.payPeriodId === period.id,
+  );
+
   // Bill set-asides are reserved, not spendable. Including them here would
   // inflate the headline number and is the one error that actively misleads.
   const spendableRemainingCents = sum(
@@ -132,16 +197,12 @@ export function summarizePeriod(input: {
     baseCents,
     commissionCents,
     envelopes,
-    totalAllocatedCents: sum(
-      allocations.filter((a) => a.payPeriodId === period.id).map((a) => a.amountCents),
-    ),
+    totalAllocatedCents: sum(periodAllocations.map((a) => a.amountCents)),
     totalSpentCents: sum(periodTxns.map((t) => t.amountCents)),
     unallocatedCents:
       baseCents +
       commissionCents -
-      sum(
-        allocations.filter((a) => a.payPeriodId === period.id).map((a) => a.amountCents),
-      ),
+      sum(periodAllocations.map((a) => a.amountCents)),
     uncategorizedCents: sum(
       periodTxns.filter((t) => t.categoryId === null).map((t) => t.amountCents),
     ),
@@ -150,6 +211,12 @@ export function summarizePeriod(input: {
     // Math.floor rather than round, so the number never encourages an overspend.
     safeToSpendPerDayCents:
       daysRemaining > 0 ? Math.floor(spendableRemainingCents / daysRemaining) : null,
+    buckets: bucketTotals({
+      categories,
+      periodAllocations,
+      incomeCents: baseCents + commissionCents,
+      targets,
+    }),
   };
 }
 
