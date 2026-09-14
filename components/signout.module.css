@@ -1,0 +1,48 @@
+/* Every custom property below is defined in app/globals.css. An undefined one
+ * fails silently to nothing, which has shipped visual bugs here before. */
+
+.signOut {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--night-line);
+  border-radius: 999px;
+
+  /* 44px minimum tap target: this gets used on a phone. */
+  min-height: 44px;
+  padding: 0 1.1rem;
+
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+
+  cursor: pointer;
+  transition:
+    color 0.4s var(--ease-soft),
+    border-color 0.4s var(--ease-soft);
+}
+
+.signOut:hover:not(:disabled),
+.signOut:focus-visible {
+  /* A border-and-text accent rather than a filled background: a --blue-mid
+   * fill would drop --ink-soft text to about 1:1. */
+  color: var(--ink);
+  border-color: var(--blue-mid);
+}
+
+.signOut:focus-visible {
+  outline: 2px solid var(--blue-light);
+  outline-offset: 2px;
+}
+
+.signOut:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signOut {
+    transition: none;
+  }
+}

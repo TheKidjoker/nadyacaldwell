@@ -24,5 +24,8 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/budget/:path*", "/onboarding/:path*"],
+  // /notes holds her diary. verifySession() is what actually protects it, but
+  // a stranger should get the same fast bounce the budget gets rather than
+  // reaching a render at all.
+  matcher: ["/budget/:path*", "/notes/:path*"],
 };

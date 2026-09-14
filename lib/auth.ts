@@ -1,4 +1,5 @@
 import { betterAuth } from "better-auth";
+import { eq } from "drizzle-orm";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { db, schema } from "@/lib/db";
 
@@ -41,6 +42,33 @@ export const auth = betterAuth({
     },
   },
   databaseHooks: {
+    /**
+     * Re-checked on EVERY sign-in, not just on account creation.
+     *
+     * The create hook below only fires when a row is being inserted. Once a
+     * row exists it is never consulted again — and development and production
+     * share one database, so a row created under DEV_ALLOWED_EMAIL would
+     * otherwise be able to sign in to the live app, where that variable is
+     * deliberately ignored. This is the gate that actually holds: no session
+     * is issued to an address the current environment does not allow.
+     */
+    session: {
+      create: {
+        before: async (session) => {
+          const [row] = await db
+            .select({ email: schema.user.email })
+            .from(schema.user)
+            .where(eq(schema.user.id, session.userId))
+            .limit(1);
+
+          if (!isAllowed(row?.email)) {
+            return false;
+          }
+
+          return { data: session };
+        },
+      },
+    },
     user: {
       create: {
         // The allowlist. This runs before the insert, so a stranger who
