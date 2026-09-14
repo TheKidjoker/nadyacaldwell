@@ -71,3 +71,104 @@ describe("perCheckSetAside", () => {
     }
   });
 });
+
+import { nextOccurrence, occurrencesBetween } from "./recurrence";
+
+describe("nextOccurrence — weekly and biweekly", () => {
+  it("returns the anchor itself when it is already on or after the date", () => {
+    expect(nextOccurrence("2026-09-14", "weekly", "2026-09-14")).toBe("2026-09-14");
+  });
+
+  it("steps forward a week at a time", () => {
+    expect(nextOccurrence("2026-09-07", "weekly", "2026-09-14")).toBe("2026-09-14");
+    expect(nextOccurrence("2026-09-07", "weekly", "2026-09-15")).toBe("2026-09-21");
+  });
+
+  it("steps forward a fortnight at a time", () => {
+    expect(nextOccurrence("2026-09-07", "biweekly", "2026-09-15")).toBe("2026-09-21");
+  });
+
+  it("returns the anchor when the target is before it", () => {
+    // A bill does not exist before its first occurrence.
+    expect(nextOccurrence("2026-09-14", "weekly", "2026-08-01")).toBe("2026-09-14");
+  });
+});
+
+describe("nextOccurrence — monthly and longer", () => {
+  it("keeps the day of month", () => {
+    expect(nextOccurrence("2026-09-01", "monthly", "2026-09-02")).toBe("2026-10-01");
+  });
+
+  it("clamps to the last day of a short month", () => {
+    expect(nextOccurrence("2027-01-31", "monthly", "2027-02-01")).toBe("2027-02-28");
+  });
+
+  it("clamps to 29 February in a leap year", () => {
+    expect(nextOccurrence("2028-01-31", "monthly", "2028-02-01")).toBe("2028-02-29");
+  });
+
+  it("returns to the anchor day after a clamped month", () => {
+    // Clamping February must not permanently move the bill to the 28th.
+    expect(nextOccurrence("2027-01-31", "monthly", "2027-03-01")).toBe("2027-03-31");
+  });
+
+  it("steps a quarter at a time", () => {
+    expect(nextOccurrence("2026-01-15", "quarterly", "2026-02-01")).toBe("2026-04-15");
+  });
+
+  it("steps six months at a time", () => {
+    expect(nextOccurrence("2026-03-10", "semiannual", "2026-04-01")).toBe("2026-09-10");
+  });
+
+  it("steps a year at a time", () => {
+    expect(nextOccurrence("2026-06-30", "annual", "2026-07-01")).toBe("2027-06-30");
+  });
+
+  it("crosses a year boundary", () => {
+    expect(nextOccurrence("2026-12-05", "monthly", "2026-12-06")).toBe("2027-01-05");
+  });
+});
+
+describe("occurrencesBetween", () => {
+  it("lists every weekly occurrence in a window", () => {
+    expect(occurrencesBetween("2026-09-07", "weekly", "2026-09-01", "2026-09-30")).toEqual([
+      "2026-09-07",
+      "2026-09-14",
+      "2026-09-21",
+      "2026-09-28",
+    ]);
+  });
+
+  it("includes both endpoints", () => {
+    expect(occurrencesBetween("2026-09-07", "weekly", "2026-09-07", "2026-09-14")).toEqual([
+      "2026-09-07",
+      "2026-09-14",
+    ]);
+  });
+
+  it("returns nothing before the anchor", () => {
+    expect(occurrencesBetween("2026-09-07", "weekly", "2026-08-01", "2026-08-31")).toEqual([]);
+  });
+
+  it("returns nothing for a window with no occurrence", () => {
+    expect(occurrencesBetween("2026-01-15", "annual", "2026-03-01", "2026-03-31")).toEqual([]);
+  });
+
+  it("lists one monthly occurrence for a single month", () => {
+    expect(occurrencesBetween("2026-01-03", "monthly", "2026-09-01", "2026-09-30")).toEqual([
+      "2026-09-03",
+    ]);
+  });
+
+  it("handles a month-end anchor across a short month", () => {
+    expect(occurrencesBetween("2027-01-31", "monthly", "2027-02-01", "2027-04-30")).toEqual([
+      "2027-02-28",
+      "2027-03-31",
+      "2027-04-30",
+    ]);
+  });
+
+  it("returns an empty array when the window is inverted", () => {
+    expect(occurrencesBetween("2026-09-07", "weekly", "2026-09-30", "2026-09-01")).toEqual([]);
+  });
+});
