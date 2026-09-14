@@ -177,12 +177,17 @@ For a given period:
 |---|---|
 | Needs | allocations to categories with `bucket = 'needs'`, bill set-asides included |
 | Wants | allocations to categories with `bucket = 'wants'` |
-| Savings | allocations to `bucket = 'savings'` categories, **plus** goal contributions dated in the period, **plus** `unallocatedCents` when positive |
+| Savings | allocations to `bucket = 'savings'` categories, **plus** `unallocatedCents` when positive |
 
 Counting unallocated income as savings is deliberate: money she has not assigned
 is money she has not spent. It also makes the three buckets sum to exactly her
 income, so the percentages always total 100% and the bars never leave an
 unexplained gap.
+
+**Goal contributions are not added separately**, though they do count as saving.
+A contribution is funded out of unallocated income, which the row above already
+counts — adding both would count the same dollar twice and break the property
+that makes the bars add up. This corrects an earlier draft of this section.
 
 When `unallocatedCents` is negative she has assigned more than she was paid. In
 that case savings contributes zero rather than a negative number, the
