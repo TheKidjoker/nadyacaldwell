@@ -30,11 +30,21 @@ function loadEnvLocal(): void {
 
 loadEnvLocal();
 
-// Migrations must go through the unpooled connection: schema changes
-// through the pooler are unreliable. Runtime queries use DATABASE_URL.
+// Neon splits its connection string in two and schema changes through the
+// pooler are unreliable, so prefer the unpooled URL when one exists. Prisma
+// Postgres exposes a single direct connection and sets no unpooled variable;
+// there, DATABASE_URL is already the right one.
+const migrationUrl = process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL;
+
+if (!migrationUrl) {
+  throw new Error(
+    "No database URL. Set DATABASE_URL (or DATABASE_URL_UNPOOLED) in .env.local.",
+  );
+}
+
 export default {
   schema: "./lib/db/schema.ts",
   out: "./drizzle",
   dialect: "postgresql",
-  dbCredentials: { url: process.env.DATABASE_URL_UNPOOLED! },
+  dbCredentials: { url: migrationUrl },
 } satisfies Config;
