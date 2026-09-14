@@ -23,6 +23,9 @@ export const user = pgTable("user", {
   image: text("image"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  // Stamped when she taps through the first-run welcome, so it plays once in
+  // her life rather than once per device. Nullable: null means never seen.
+  welcomedAt: timestamp("welcomed_at"),
 });
 
 export const session = pgTable("session", {
@@ -219,5 +222,84 @@ export const allocationTargets = pgTable(
       "targets_sum_to_100",
       sql`${t.needsPct} + ${t.wantsPct} + ${t.savingsPct} = 100`,
     ),
+  ],
+);
+
+// --- Notes / diary / to-do tables ---
+// Her own sections, named by her; nothing here is preset. A section is either
+// a place she writes dated entries or a list she ticks off, and `kind` fixes
+// which at creation. Days she sees are `date` ('YYYY-MM-DD'); the created/
+// updated stamps are row bookkeeping and stay `timestamp`.
+//
+// SEAM — optional per-section passwords. He has not decided between hiding a
+// section behind a check (theatre against anyone holding the database) and
+// real encryption (a forgotten password destroys her entries permanently), and
+// the two want different columns: the first a password hash + salt HERE on
+// note_sections, the second a KDF salt and wrapped data key here plus
+// ciphertext columns replacing `title`/`body` on note_entries. Adding either
+// now would presuppose the answer, so neither is present.
+
+export const noteSectionKindEnum = pgEnum("note_section_kind", [
+  "journal",
+  "todo",
+]);
+
+export const noteSections = pgTable(
+  "note_sections",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    kind: noteSectionKindEnum("kind").notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    check("note_sections_name_present", sql`btrim(${t.name}) <> ''`),
+    index("note_sections_user_sort_idx").on(t.userId, t.sortOrder),
+  ],
+);
+
+export const noteEntries = pgTable(
+  "note_entries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    sectionId: uuid("section_id")
+      .notNull()
+      .references(() => noteSections.id, { onDelete: "cascade" }),
+    /**
+     * The day the entry is about, for a journal section. Null on a to-do item,
+     * which has no day of its own — the seam a due date would use later.
+     */
+    entryOn: date("entry_on"),
+    /** A to-do item's text; a journal entry's optional heading. */
+    title: text("title"),
+    /** The writing. Empty string on a to-do item, never null. */
+    body: text("body").notNull().default(""),
+    done: boolean("done").notNull().default(false),
+    /** The day she ticked it. Set with `done`, cleared when she un-ticks. */
+    doneOn: date("done_on"),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    // An entry has to carry something: a blank row is a bug, not a thought.
+    check(
+      "note_entries_not_empty",
+      sql`coalesce(btrim(${t.title}), '') <> '' OR btrim(${t.body}) <> ''`,
+    ),
+    // A completion date without a completion is a lie about the row.
+    check(
+      "note_entries_done_on_with_done",
+      sql`${t.done} OR ${t.doneOn} IS NULL`,
+    ),
+    index("note_entries_section_sort_idx").on(t.sectionId, t.sortOrder),
+    index("note_entries_user_idx").on(t.userId),
   ],
 );

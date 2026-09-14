@@ -1,0 +1,1 @@
+ALTER TABLE "user" ADD COLUMN "welcomed_at" timestamp;
