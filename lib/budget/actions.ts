@@ -90,23 +90,52 @@ export async function setAllocation(formData: FormData) {
   revalidatePath("/budget");
 }
 
-export async function createCategory(formData: FormData) {
-  const kind = String(formData.get("kind"));
-  if (kind !== "spending" && kind !== "bill") throw new Error("Unknown kind");
+const CADENCES = [
+  "weekly",
+  "biweekly",
+  "monthly",
+  "quarterly",
+  "semiannual",
+  "annual",
+] as const;
 
-  const monthlyTarget = formData.get("monthlyTarget");
+export async function createBill(formData: FormData) {
+  const cadence = String(formData.get("cadence"));
+  if (!CADENCES.includes(cadence as (typeof CADENCES)[number])) {
+    throw new Error("Unknown cadence");
+  }
 
   addCategoryRow({
     name: text(formData.get("name"), 60),
-    kind,
+    kind: "bill",
+    bucket: "needs",
     // Bills always carry over: a part-funded bill envelope is meaningless if
     // it resets every payday.
-    carryover: kind === "bill" || formData.get("carryover") === "on",
-    monthlyTargetCents: kind === "bill" ? toCents(monthlyTarget) : null,
+    carryover: true,
+    cadence: cadence as (typeof CADENCES)[number],
+    recurringAmountCents: toCents(formData.get("amount")),
+    dueAnchor: isoDate(formData.get("dueAnchor")),
+    color: String(formData.get("color") || "#6ba1cd"),
+  });
+
+  revalidatePath("/budget");
+  revalidatePath("/onboarding");
+}
+
+export async function createSpendingCategory(formData: FormData) {
+  addCategoryRow({
+    name: text(formData.get("name"), 60),
+    kind: "spending",
+    bucket: "wants",
+    carryover: formData.get("carryover") === "on",
+    cadence: null,
+    recurringAmountCents: null,
+    dueAnchor: null,
     color: String(formData.get("color") || "#93bee0"),
   });
 
   revalidatePath("/budget");
+  revalidatePath("/onboarding");
 }
 
 export async function createGoal(formData: FormData) {

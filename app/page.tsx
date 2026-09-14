@@ -6,6 +6,7 @@ import { Bloom } from "@/components/florals/Bloom";
 import florals from "@/components/florals/florals.module.css";
 import { getGoalsData, getPeriodData } from "@/lib/db/queries";
 import { goalProgress, summarizePeriod } from "@/lib/budget/calc";
+import { DEFAULT_TARGETS } from "@/lib/budget/types";
 import { formatCents } from "@/lib/budget/format";
 import styles from "./landing.module.css";
 
@@ -22,6 +23,8 @@ export default async function Page() {
         allocations: data.allocations,
         transactions: data.transactions,
         today,
+        // Until Task 9 reads her saved targets from the database.
+        targets: DEFAULT_TARGETS,
       })
     : null;
 
@@ -102,6 +105,13 @@ export default async function Page() {
                 );
               })}
             </section>
+          )}
+
+          {!summary && (
+            <p className={styles.dashLabel}>
+              Nothing set up yet &mdash; your budget starts once the database is
+              connected.
+            </p>
           )}
 
           <nav className={styles.dashLinks}>

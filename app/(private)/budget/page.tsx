@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getPeriodData } from "@/lib/db/queries";
 import { summarizePeriod } from "@/lib/budget/calc";
+import { DEFAULT_TARGETS } from "@/lib/budget/types";
 import { formatCents } from "@/lib/budget/format";
 import { EnvelopeCard } from "@/components/budget/EnvelopeCard";
 import { QuickAdd } from "@/components/budget/QuickAdd";
@@ -15,7 +15,22 @@ export default async function BudgetPage({
   const { period: periodId } = await searchParams;
   const data = await getPeriodData(periodId);
 
-  if (!data) redirect("/onboarding");
+  // Onboarding (Task 10) is blocked on the database, so until it exists an
+  // empty budget says so rather than redirecting into a 404.
+  if (!data) {
+    return (
+      <main className={styles.page}>
+        <nav className={styles.periodNav}>
+          <Link href="/">&larr; Home</Link>
+        </nav>
+        <section className={styles.headline}>
+          <p className={styles.headlineLabel}>
+            Nothing here yet. Setup arrives with the database.
+          </p>
+        </section>
+      </main>
+    );
+  }
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -26,6 +41,8 @@ export default async function BudgetPage({
     allocations: data.allocations,
     transactions: data.transactions,
     today,
+    // Until Task 9 reads her saved targets from the database.
+    targets: DEFAULT_TARGETS,
   });
 
   const index = data.periods.findIndex((p) => p.id === data.period.id);

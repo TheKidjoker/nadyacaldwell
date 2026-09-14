@@ -43,11 +43,12 @@ export function EnvelopeCard({
         {balance.carriedInCents !== 0 && (
           <> &middot; {formatCents(balance.carriedInCents)} carried in</>
         )}
-        {balance.kind === "bill" && balance.monthlyTargetCents !== null && (
+        {balance.kind === "bill" && balance.recurringAmountCents !== null && (
           <>
             {" "}
             &middot; {balance.fullyFunded ? "fully funded" : "funding"} toward{" "}
-            {formatCents(balance.monthlyTargetCents)}
+            {formatCents(balance.recurringAmountCents)} {balance.cadence}
+            {balance.nextDueOn && <> &middot; due {balance.nextDueOn}</>}
           </>
         )}
       </p>
