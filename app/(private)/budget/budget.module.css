@@ -47,10 +47,10 @@
   position: sticky;
   top: 0.5rem;
   z-index: 10;
-  background: var(--pearl);
+  background: var(--night);
   padding: 0.5rem;
   border-radius: 0.75rem;
-  box-shadow: 0 2px 12px rgb(62 90 121 / 0.12);
+  box-shadow: 0 6px 20px rgb(2 8 16 / 0.55);
   margin-bottom: 2rem;
 }
 
@@ -60,8 +60,8 @@
   font-size: 1rem;
   border-radius: 0.5rem;
   border: 1px solid var(--ink-faint);
-  background: var(--pearl);
-  color: var(--ink-body);
+  background: var(--night);
+  color: var(--ink);
   min-width: 0;
 }
 
@@ -69,8 +69,8 @@
   padding: 0.7rem 1.1rem;
   border-radius: 0.5rem;
   border: none;
-  background: var(--sea-near);
-  color: var(--pearl);
+  background: var(--blue-light);
+  color: var(--night);
   font-size: 1rem;
   cursor: pointer;
 }
@@ -94,7 +94,7 @@
 }
 
 .income {
-  color: var(--ink-body);
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
 
@@ -110,10 +110,10 @@
 }
 
 .envelope {
-  border: 1px solid color-mix(in srgb, var(--ink-faint) 35%, transparent);
+  border: 1px solid var(--night-line);
   border-radius: 0.75rem;
   padding: 0.9rem 1rem;
-  background: var(--pearl);
+  background: var(--night);
 }
 
 .envelopeHead {
@@ -140,13 +140,13 @@
 }
 
 .amountOver {
-  color: #b4553f;
+  color: var(--over);
 }
 
 .bar {
   height: 6px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--sea-far) 45%, transparent);
+  background: var(--night-line);
   overflow: hidden;
   margin: 0.6rem 0 0.5rem;
 }
@@ -159,11 +159,11 @@
 }
 
 .fill {
-  background: var(--sea-near);
+  background: var(--blue-light);
 }
 
 .fillOver {
-  background: #b4553f;
+  background: var(--over);
 }
 
 .envelopeMeta {

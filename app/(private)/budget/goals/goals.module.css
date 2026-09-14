@@ -32,10 +32,10 @@
   grid-template-columns: auto 1fr;
   gap: 1rem;
   align-items: start;
-  border: 1px solid color-mix(in srgb, var(--ink-faint) 35%, transparent);
+  border: 1px solid var(--night-line);
   border-radius: 0.75rem;
   padding: 1rem;
-  background: var(--pearl);
+  background: var(--night);
 }
 
 .bloom {
@@ -68,7 +68,7 @@
 }
 
 .overdue {
-  color: #b4553f;
+  color: var(--over);
 }
 
 .contribute,
@@ -86,8 +86,8 @@
   font-size: 1rem;
   border-radius: 0.5rem;
   border: 1px solid var(--ink-faint);
-  background: var(--pearl);
-  color: var(--ink-body);
+  background: var(--night);
+  color: var(--ink);
   font-family: inherit;
 }
 
@@ -95,8 +95,8 @@
   padding: 0.6rem 1.1rem;
   border-radius: 0.5rem;
   border: none;
-  background: var(--sea-near);
-  color: var(--pearl);
+  background: var(--blue-light);
+  color: var(--night);
   font-size: 1rem;
   cursor: pointer;
 }
