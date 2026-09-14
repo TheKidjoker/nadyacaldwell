@@ -4,55 +4,18 @@
 
 .stage {
   position: relative;
-  width: 100%;
-  min-height: 100vh;
   min-height: 100dvh;
+  display: grid;
+  place-items: center;
   overflow: hidden;
-  isolation: isolate;
-}
-
-/* ------------------------------------------------------------------ *
- * Layer 1 — the WebGL backdrop, and what stands in for it
- * ------------------------------------------------------------------ */
-
-.backdrop {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-}
-
-/*
- * The poster paints immediately and is never removed: it is the loading state,
- * the no-WebGL fallback, and the colour behind the canvas at once, so there is
- * never a blank frame and the message never depends on WebGL arriving.
- */
-.poster {
-  position: absolute;
-  inset: 0;
-  background-color: #bedcf2;
-  background-size: cover;
-  background-position: 50% 60%;
-  background-repeat: no-repeat;
-}
-
-.canvasWrap {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 900ms cubic-bezier(0.33, 0.1, 0.2, 1);
-}
-
-.canvasWrap canvas {
-  display: block;
-  width: 100% !important;
-  height: 100% !important;
-  /* The scene is decorative; all interaction belongs to the HTML above it. */
-  pointer-events: none;
-}
-
-.canvasReady {
-  opacity: 1;
+  background: linear-gradient(
+    to bottom,
+    var(--sky-zenith) 0%,
+    var(--sky-upper) 22%,
+    var(--sky-mid) 45%,
+    var(--sky-low) 72%,
+    var(--horizon) 100%
+  );
 }
 
 /* ------------------------------------------------------------------ *
@@ -263,10 +226,6 @@
 }
 
 @media (max-width: 640px) {
-  .poster {
-    background-position: 50% 66%;
-  }
-
   .corners {
     font-size: 0.52rem;
     letter-spacing: 0.26em;
@@ -320,11 +279,5 @@
   .cornerLeft,
   .cornerRight {
     top: calc(env(safe-area-inset-top, 0px) + 1rem);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .canvasWrap {
-    transition: none;
   }
 }

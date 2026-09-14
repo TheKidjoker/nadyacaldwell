@@ -24,15 +24,15 @@ const script = Parisienne({
 });
 
 const SITE = "https://nadyacaldwell.com";
-const TITLE = "Nadya Caldwell — Coming Soon";
+const TITLE = "Nadya — Coming Soon";
 const DESCRIPTION =
-  "Nadya Caldwell is creating something beautiful. A new experience is coming soon.";
+  "Nadya is creating something beautiful. A new experience is coming soon.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: TITLE,
   description: DESCRIPTION,
-  applicationName: "Nadya Caldwell",
+  applicationName: "Nadya",
   alternates: { canonical: "/" },
   robots: {
     index: true,
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: SITE,
-    siteName: "Nadya Caldwell",
+    siteName: "Nadya",
     title: TITLE,
     description: DESCRIPTION,
     locale: "en_US",

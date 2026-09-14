@@ -1,4 +1,4 @@
-import styles from "@/app/scene.module.css";
+import styles from "@/app/landing.module.css";
 
 export function Corners() {
   return (

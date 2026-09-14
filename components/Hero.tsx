@@ -1,12 +1,11 @@
-import styles from "@/app/scene.module.css";
+import styles from "@/app/landing.module.css";
 
 export function Hero() {
   return (
     <main className={styles.content}>
       <div className={styles.contentInner}>
         <h1 className={styles.name}>
-          <span className={styles.nameLine}>Nadya</span>{" "}
-          <span className={styles.nameLine}>Caldwell</span>
+          <span className={styles.nameLine}>Nadya</span>
         </h1>
 
         <div className={styles.rule} aria-hidden="true">
