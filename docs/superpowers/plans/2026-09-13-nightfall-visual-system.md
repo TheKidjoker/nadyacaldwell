@@ -548,7 +548,7 @@ export function Hero({ note }: { note: string | null }) {
 
 - [ ] **Step 5: Wire it up in `app/page.tsx`**
 
-Remove both `<Sprig …>` elements and the `Sprig` and `florals` imports. Add the note import and pass it in:
+Remove both `<Sprig …>` elements and the `Sprig` and `florals` imports. There is exactly one `<Hero />` call site and two `<Sprig />` elements; `grep -c Sprig app/page.tsx` returns 3 before the change (two elements plus the import) and must return 0 after. Add the note import and pass it in:
 
 ```tsx
 import { noteForDay } from "@/lib/notes";
@@ -560,7 +560,7 @@ Inside the component, after `const today = …`:
   const note = noteForDay(today);
 ```
 
-and change the `<Hero />` call in **both** the empty-state branch and the main return to:
+and change the single `<Hero />` call site to:
 
 ```tsx
           <Hero note={note} />
@@ -727,4 +727,4 @@ If nothing needed fixing, skip this step rather than making an empty commit.
 
 **One addition the spec did not name.** `.contentInner::before` paints a white radial glow behind the landing type — it exists to lift text off a pale sky and becomes a grey smear on navy. Task 4 Step 3 deletes it. The spec's file table said "sprig positioning removed" for `landing.module.css` but did not mention the glow or the diamond rule; both are the same class of change and are handled there.
 
-**Type consistency.** `noteForDay(today, notes?)` is defined once in Task 1 and called with a single argument in Task 4, relying on the `NOTES` default. `Hero` gains exactly one prop, `note: string | null`, defined in Task 4 Step 4 and passed at both call sites in Step 5. `Bloom`'s props are explicitly unchanged.
+**Type consistency.** `noteForDay(today, notes?)` is defined once in Task 1 and called with a single argument in Task 4, relying on the `NOTES` default. `Hero` gains exactly one prop, `note: string | null`, defined in Task 4 Step 4 and passed at its single call site in Step 5. `Bloom`'s props are explicitly unchanged.
