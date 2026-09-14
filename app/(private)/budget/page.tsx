@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { verifySession } from "@/lib/dal";
 import { getPeriodData } from "@/lib/db/queries";
 import { summarizePeriod } from "@/lib/budget/calc";
 import { DEFAULT_TARGETS } from "@/lib/budget/types";
@@ -13,10 +14,17 @@ export default async function BudgetPage({
   searchParams: Promise<{ period?: string }>;
 }) {
   const { period: periodId } = await searchParams;
+
+  // This page lives under (private), but a Server Component is not the
+  // security boundary either -- the session is verified here as well as
+  // inside every query it runs.
+  await verifySession();
+
   const data = await getPeriodData(periodId);
 
-  // Onboarding (Task 10) is blocked on the database, so until it exists an
-  // empty budget says so rather than redirecting into a 404.
+  // Setup happens on the home page now, not in a wizard of its own: with no
+  // pay period there is nothing here to navigate, so this points back there
+  // rather than rendering an empty frame.
   if (!data) {
     return (
       <main className={styles.page}>
@@ -25,7 +33,10 @@ export default async function BudgetPage({
         </nav>
         <section className={styles.headline}>
           <p className={styles.headlineLabel}>
-            Nothing here yet. Setup arrives with the database.
+            Nothing to show until your first paycheck is logged.
+          </p>
+          <p className={styles.emptyAction}>
+            <Link href="/">Start on the home page &rarr;</Link>
           </p>
         </section>
       </main>

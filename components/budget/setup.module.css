@@ -1,0 +1,380 @@
+/* ------------------------------------------------------------------ *
+ * Setup surfaces — the paycheck gate and the inline add-slots.
+ *
+ * These render inside the landing shell, so they inherit its centred
+ * column but set their own left-aligned, form-shaped rhythm. Every colour
+ * here is a token from app/globals.css; Nightfall has no light variant, so
+ * there is deliberately no prefers-color-scheme branch below.
+ * ------------------------------------------------------------------ */
+
+/* ---------- The paycheck gate (state B) ---------- */
+
+.gate {
+  max-width: 26rem;
+  margin: clamp(1.5rem, 5vh, 2.75rem) auto 0;
+  padding: 1.4rem 1.3rem 1.5rem;
+  border: 1px solid var(--night-line);
+  border-radius: 0.9rem;
+  background: var(--night);
+  text-align: left;
+}
+
+.gateQuestion {
+  font-size: 1.05rem;
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--ink);
+  margin: 0 0 0.35rem;
+}
+
+.gateWhy {
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin-bottom: 1.15rem;
+}
+
+/* ---------- Sections on the dashboard (state C) ---------- */
+
+.section {
+  margin-top: clamp(1.75rem, 5vh, 2.75rem);
+  text-align: left;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--night-line);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.sectionTotal {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.rows {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+
+.empty {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+/* ---------- One existing bill ---------- */
+
+.billRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  column-gap: 1rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--night-line);
+  border-radius: 0.7rem;
+  background: var(--night);
+}
+
+.billName {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.billSetAside {
+  font-size: 0.95rem;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.billMeta,
+.billSetAsideLabel {
+  grid-row: 2;
+  margin-top: 0.15rem;
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.billSetAsideLabel {
+  text-align: right;
+}
+
+/* ---------- One existing spending category ---------- */
+
+.spendRow {
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--night-line);
+  border-radius: 0.7rem;
+  background: var(--night);
+  font-size: 0.92rem;
+  color: var(--ink);
+}
+
+/* ---------- The add-slot, collapsed ---------- */
+
+.addButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.55rem;
+  padding: 0.55rem 0.95rem;
+  border: 1px dashed var(--ink-faint);
+  border-radius: 0.7rem;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition:
+    border-color 180ms var(--ease-soft),
+    color 180ms var(--ease-soft);
+}
+
+.addButton:hover {
+  border-color: var(--blue-light);
+  color: var(--blue-light);
+}
+
+/* The slot stops being the visual focus once she has rows above it. */
+.addButtonQuiet {
+  border-style: solid;
+  border-color: var(--night-line);
+  color: var(--ink-soft);
+}
+
+.addPlus {
+  font-size: 1.05em;
+  line-height: 1;
+}
+
+/* ---------- The add-slot, open ---------- */
+
+.slot {
+  margin-top: 0.55rem;
+  padding: 0.95rem 0.9rem 1rem;
+  border: 1px solid var(--blue-mid);
+  border-radius: 0.7rem;
+  background: var(--night);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.8rem;
+}
+
+.chip {
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--night-line);
+  border-radius: 999px;
+  background: none;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition:
+    border-color 180ms var(--ease-soft),
+    color 180ms var(--ease-soft);
+}
+
+.chip:hover {
+  border-color: var(--blue-mid);
+  color: var(--ink);
+}
+
+.fields {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.fieldsBill {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* Name spans the pair; amount and cadence sit side by side beneath it. */
+.fieldWide {
+  grid-column: 1 / -1;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.label {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.input,
+.select {
+  width: 100%;
+  padding: 0.6rem 0.6rem;
+  font: inherit;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--ink-faint);
+  /* Deeper than the card it sits on, so the field reads as a well rather
+   * than a raised chip. Text is --ink at ~14:1 on this ground. */
+  background: var(--night-deep);
+  color: var(--ink);
+  min-width: 0;
+}
+
+.input::placeholder {
+  /* --ink-faint would drop the hint to ~3:1; --ink-soft holds 5.5:1. */
+  color: var(--ink-soft);
+  opacity: 1;
+}
+
+/* Safari paints the native date picker glyph dark-on-dark. */
+.input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+/* ---------- base / commission choice ---------- */
+
+.fieldset {
+  /* A fieldset for the semantics, not for the browser's default box. */
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.choice {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+
+.choiceOption {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.6rem 0.5rem;
+  border: 1px solid var(--ink-faint);
+  border-radius: 0.5rem;
+  background: var(--night-deep);
+  color: var(--ink);
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.choiceOption:has(input:checked) {
+  border-color: var(--blue-light);
+}
+
+.choiceOption input {
+  accent-color: var(--blue-light);
+  margin: 0;
+}
+
+/* ---------- the live derived figure ---------- */
+
+.derived {
+  /* Reserved whether or not there is a figure yet, so the row does not
+   * jump on the first keystroke. */
+  min-height: 1.4rem;
+  margin-top: 0.7rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+
+.derivedValue {
+  color: var(--blue-light);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- actions ---------- */
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.85rem;
+}
+
+.submit {
+  padding: 0.6rem 1.35rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--blue-light);
+  color: var(--night-deep);
+  font: inherit;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: background 180ms var(--ease-soft);
+}
+
+.submit:hover {
+  background: var(--blue-mid);
+}
+
+.submit:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.cancel {
+  padding: 0.6rem 0.4rem;
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.cancel:hover {
+  color: var(--ink);
+}
+
+.error {
+  margin-top: 0.6rem;
+  font-size: 0.82rem;
+  color: var(--over);
+}
+
+@media (max-width: 480px) {
+  .fieldsBill {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .addButton,
+  .chip,
+  .submit {
+    transition: none;
+  }
+}
