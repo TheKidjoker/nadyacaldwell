@@ -15,6 +15,7 @@ export function Corners() {
         <span>chapter ahead</span>
       </p>
 
+      <p className={styles.script}>More Beautiful Things Ahead</p>
     </div>
   );
 }
