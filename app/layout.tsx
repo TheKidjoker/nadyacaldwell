@@ -1,13 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Manrope, Parisienne } from "next/font/google";
+import { Manrope, Parisienne } from "next/font/google";
 import "./globals.css";
-
-const serif = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["300", "400"],
-  variable: "--font-serif",
-  display: "swap",
-});
 
 const sans = Manrope({
   subsets: ["latin"],
@@ -59,8 +52,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   // Lets the page paint into the notch area so env(safe-area-inset-*) is live.
   viewportFit: "cover",
-  themeColor: "#BEDCF2",
-  colorScheme: "light",
+  themeColor: "#0f2438",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({
@@ -69,7 +62,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${serif.variable} ${sans.variable} ${script.variable}`}
+      className={`${sans.variable} ${script.variable}`}
     >
       <body suppressHydrationWarning>{children}</body>
     </html>

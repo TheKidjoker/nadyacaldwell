@@ -1,32 +1,30 @@
 :root {
-  /* Sky */
-  --sky-zenith: #7fb0dc;
-  --sky-upper: #9ac5e7;
-  --sky-mid: #bedcf2;
-  --sky-low: #dceefb;
-  --horizon: #f4fafd;
+  /* Ground. Nightfall is a dark design, not a dark mode -- there is no
+     light variant, and no prefers-color-scheme branch anywhere. */
+  --night-deep: #071320;
+  --night: #0f2438;
+  --night-line: #1b3550;
 
-  /* Light */
-  --sun-core: #fffdf6;
-  --sun-warm: #ffeecd;
+  /* Her blue, promoted from background to light. On a pale ground it was a
+     tint behind tinted text, which is what made the old site read washed. */
+  --blue-light: #9ac5e7;
+  --blue-mid: #6ba1cd;
 
-  /* Water */
-  --sea-far: #cadff0;
-  --sea-mid: #93bee0;
-  --sea-near: #6ba1cd;
+  /* Ink */
+  --ink: #eaf4fc;
+  --ink-soft: #7d9cb8;
+  --ink-faint: #54708c;
 
-  /* Ink — muted slate blue */
-  --ink: #3e5a79;
-  --ink-body: #35526f;
-  --ink-soft: #5f7d9d;
-  --ink-faint: #7e9cb8;
+  /* The one warm thing on the page: a hairline under her name. */
+  --warm: #b08d57;
 
-  --pearl: #f8fbfe;
-
-  /* Horizon sits here; everything else is measured from it. */
-  --horizon-line: 56%;
+  /* Overspent and overdue. The old #b4553f was picked for a white ground
+     and goes muddy on navy, losing the warning it exists to carry. */
+  --over: #e08a72;
 
   --ease-soft: cubic-bezier(0.33, 0.1, 0.2, 1);
+
+  color-scheme: dark;
 }
 
 * {
@@ -38,7 +36,7 @@ body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
-  background: var(--sky-mid);
+  background: var(--night-deep);
 }
 
 html {
@@ -51,7 +49,7 @@ html {
 body {
   min-height: 100vh;
   min-height: 100dvh;
-  color: var(--ink-body);
+  color: var(--ink);
   font-family: var(--font-sans), "Segoe UI", system-ui, sans-serif;
   font-synthesis-weight: none;
   -webkit-font-smoothing: antialiased;
@@ -69,7 +67,7 @@ p {
 }
 
 :focus-visible {
-  outline: 2px solid var(--ink);
+  outline: 2px solid var(--blue-light);
   outline-offset: 4px;
   border-radius: 2px;
 }
