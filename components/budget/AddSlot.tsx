@@ -5,6 +5,7 @@ import { createBill, createSpendingCategory } from "@/lib/budget/actions";
 import { formatCents } from "@/lib/budget/format";
 import { perCheckSetAside } from "@/lib/budget/recurrence";
 import type { Cadence } from "@/lib/budget/recurrence";
+import { duePresetsFor, resolveDuePreset } from "@/lib/budget/duePresets";
 import { CADENCE_LABEL } from "./BillRow";
 import styles from "./setup.module.css";
 
@@ -67,10 +68,12 @@ export function AddBillSlot({
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [cadence, setCadence] = useState<Cadence>("monthly");
+  const [due, setDue] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const nameId = useId();
+  const dueId = useId();
 
   if (!open) {
     return (
@@ -84,10 +87,15 @@ export function AddBillSlot({
     amount.trim() !== "" && Number.isFinite(cents) && cents > 0;
   const setAsideCents = hasAmount ? perCheckSetAside(cents, cadence) : null;
 
+  // The shortcuts follow the cadence she picked: weekdays for the ones that
+  // recur in days, days of the month for the ones that recur in months.
+  const presets = duePresetsFor(cadence);
+
   function reset() {
     setName("");
     setAmount("");
     setCadence("monthly");
+    setDue("");
     setError(null);
     formRef.current?.reset();
   }
@@ -173,16 +181,47 @@ export function AddBillSlot({
           </select>
         </label>
 
-        <label className={`${styles.field} ${styles.fieldWide}`}>
-          <span className={styles.label}>Next due</span>
+        {/* Not a <label> wrapper: the shortcut buttons live in this cell, and
+         * a click on a label would be forwarded to the date input instead. */}
+        <div className={`${styles.field} ${styles.fieldWide}`}>
+          <label className={styles.label} htmlFor={dueId}>
+            Next due
+          </label>
           <input
+            id={dueId}
             type="date"
             name="dueAnchor"
+            value={due}
+            onChange={(e) => setDue(e.target.value)}
             min={today}
             required
             className={styles.input}
           />
-        </label>
+
+          {/* Shortcuts, not a replacement: they write into the field above,
+           * which stays open for any date she wants. */}
+          <div className={styles.presets} role="group" aria-label="Common due dates">
+            {presets.map((preset) => {
+              // Resolved against `today`, so "the 1st" late in the month is
+              // next month's 1st and "last day" is the real 28th/29th/30th/31st.
+              const resolved = resolveDuePreset(preset, today);
+              const chosen = due === resolved;
+
+              return (
+                <button
+                  key={preset.label}
+                  type="button"
+                  aria-label={preset.description}
+                  aria-pressed={chosen}
+                  className={`${styles.preset} ${chosen ? styles.presetOn : ""}`}
+                  onClick={() => setDue(resolved)}
+                >
+                  {preset.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       <p className={styles.derived} aria-live="polite">

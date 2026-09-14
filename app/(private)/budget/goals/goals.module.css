@@ -79,9 +79,22 @@
   flex-wrap: wrap;
 }
 
+/* Name and its shortcut dropdown take a row of their own: the name is the
+ * field she thinks about, and the pair would otherwise squeeze the amount
+ * and the date off the end on a phone. */
+.nameField {
+  flex: 1 1 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .input {
   flex: 1 1 8rem;
   min-width: 0;
+  /* 2.75rem is the 44px tap-target floor, and it keeps the text fields the
+   * same height as the dropdown beside them. */
+  min-height: 2.75rem;
   padding: 0.6rem;
   font-size: 1rem;
   border-radius: 0.5rem;
@@ -91,11 +104,28 @@
   font-family: inherit;
 }
 
+/* The common-goal shortcut. A real select, so it gets the platform picker
+ * on a phone; color-scheme: dark in globals.css darkens that list. */
+.select {
+  flex: 0 1 auto;
+  max-width: 100%;
+  min-height: 2.75rem;
+  padding: 0.6rem;
+  font-size: 1rem;
+  font-family: inherit;
+  border-radius: 0.5rem;
+  border: 1px solid var(--ink-faint);
+  background: var(--night);
+  color: var(--ink);
+  cursor: pointer;
+}
+
 .input::placeholder {
   color: var(--ink-faint);
 }
 
 .addButton {
+  min-height: 2.75rem;
   padding: 0.6rem 1.1rem;
   border-radius: 0.5rem;
   border: none;

@@ -4,6 +4,7 @@ import { goalProgress } from "@/lib/budget/calc";
 import { formatCents } from "@/lib/budget/format";
 import { createGoal, addGoalContribution } from "@/lib/budget/actions";
 import { Bloom } from "@/components/florals/Bloom";
+import { GoalNameField } from "@/components/budget/GoalNameField";
 import styles from "./goals.module.css";
 
 export default async function GoalsPage() {
@@ -88,13 +89,10 @@ export default async function GoalsPage() {
       <section className={styles.newGoal}>
         <h2 className={styles.sectionTitle}>New goal</h2>
         <form action={createGoal} className={styles.newGoalForm}>
-          <input
-            name="name"
-            placeholder="What for?"
-            required
-            maxLength={60}
-            aria-label="Goal name"
-            className={styles.input}
+          <GoalNameField
+            className={styles.nameField}
+            inputClassName={styles.input}
+            selectClassName={styles.select}
           />
           <input
             type="number"
