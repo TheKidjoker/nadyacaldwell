@@ -3,22 +3,33 @@ import { eq } from "drizzle-orm";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { db, schema } from "@/lib/db";
 
-// Normalized once, at module load, so every comparison below is against the
-// same shape. An unset value is a configuration error, not a default.
-const allowedEmail = process.env.ALLOWED_EMAIL?.toLowerCase().trim();
+/**
+ * The allowlist. ALLOWED_EMAIL is a comma-separated list, normalized once at
+ * module load so every comparison below is against the same shape. An unset
+ * or empty value is a configuration error, not a default — this refuses to
+ * boot rather than quietly becoming an open sign-up.
+ *
+ * It is a list rather than one address because Chance needs to reach the
+ * deployed app too. Every address here can sign in EVERYWHERE, production
+ * included; there is nothing environment-dependent about it. Keep it to the
+ * people who should genuinely have their own account.
+ */
+const allowedEmails = new Set(
+  (process.env.ALLOWED_EMAIL ?? "")
+    .split(",")
+    .map((address) => address.toLowerCase().trim())
+    .filter(Boolean),
+);
 
-if (!allowedEmail) {
+if (allowedEmails.size === 0) {
   throw new Error("ALLOWED_EMAIL is not set — refusing to start an open sign-up.");
 }
 
 /**
- * A second address that may sign in on a DEVELOPMENT BUILD ONLY, so the tool
- * can be tested without borrowing her account.
- *
- * The guard is NODE_ENV, which Next sets to "production" for every production
- * build and every deployment. There is therefore no value of
- * DEV_ALLOWED_EMAIL that the live app will ever read: this cannot widen
- * production access, even if the variable is set in Vercel by mistake.
+ * An extra address for DEVELOPMENT BUILDS ONLY, kept for local work without
+ * widening the deployed allowlist. The guard is NODE_ENV, which Next sets to
+ * "production" for every production build, so no value of DEV_ALLOWED_EMAIL
+ * can reach the live app even if it is set in Vercel by mistake.
  */
 const devAllowedEmail =
   process.env.NODE_ENV === "production"
@@ -28,7 +39,7 @@ const devAllowedEmail =
 function isAllowed(email: string | null | undefined): boolean {
   const candidate = email?.toLowerCase().trim();
   if (!candidate) return false;
-  return candidate === allowedEmail || candidate === devAllowedEmail;
+  return allowedEmails.has(candidate) || candidate === devAllowedEmail;
 }
 
 export const auth = betterAuth({
