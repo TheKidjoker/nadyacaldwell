@@ -11,10 +11,12 @@ import { AddBillSlot, AddSpendingSlot } from "@/components/budget/AddSlot";
 import { BillRow } from "@/components/budget/BillRow";
 import { PaycheckGate } from "@/components/budget/PaycheckGate";
 import { SpendableBar } from "@/components/budget/SpendableBar";
+import { SplitSliders } from "@/components/budget/SplitSliders";
 import { auth } from "@/lib/auth";
 import { hasSeenWelcome } from "@/lib/db/welcome";
 import { getGoalsData, getPeriodData } from "@/lib/db/queries";
 import { goalProgress, summarizePeriod } from "@/lib/budget/calc";
+import { splitRowsFrom } from "@/lib/budget/splitRows";
 import { perCheckSetAside } from "@/lib/budget/recurrence";
 import { formatCents } from "@/lib/budget/format";
 import { noteForDay } from "@/lib/notes";
@@ -145,28 +147,45 @@ export default async function Page() {
   /** Nothing entered at all -- the original "tell me about your bills" state. */
   const preSetup = bills.length === 0 && spending.length === 0;
 
+  /**
+   * Can she split this check right here? A paycheck and somewhere to put it.
+   *
+   * This is what moved assigning out of a separate errand: the split used to
+   * be a link in the hero, so the first thing the page said to her was a
+   * chore with an arrow on it. Now the headline holds and the work appears
+   * underneath it, in place.
+   */
+  const canSplit = summary.incomeCents > 0 && spending.length > 0;
+
+  const { rows, fixed, initialCents, billsTotalCents } = splitRowsFrom({
+    envelopes: summary.envelopes,
+    categories: data.categories,
+  });
+
+  /**
+   * What the headline says while it is still holding.
+   *
+   * It HOLDS at $--.-- rather than quoting a figure she has not made yet, and
+   * it never says "to assign" -- the hero is her daily number or it is
+   * waiting to be. Once she has split a check it becomes that number and
+   * stays it.
+   */
+  const holdLine = preSetup
+    ? "once your bills and categories are in"
+    : canSplit
+      ? "your daily number lands here once you split this check"
+      : spending.length === 0
+        ? "name a spending category and this fills in"
+        : "once this paycheck is split";
+
   return (
     <Shell note={note} signedIn>
       <section className={styles.dash}>
-        {preSetup ? (
+        {!summary.hasSpendable ? (
           <>
             <p className={styles.dashNumber}>$--.--</p>
-            <p className={styles.dashLabel}>once your bills are in</p>
+            <p className={styles.dashLabel}>{holdLine}</p>
           </>
-        ) : !summary.hasSpendable ? (
-          /* Bills are in but nothing is assigned to spend yet. There is no
-             honest daily figure, so the headline shows the money that is
-             genuinely hers to direct, names it for what it is, and -- the
-             whole point -- goes somewhere. A figure labelled "to assign" that
-             links nowhere is a instruction with no door attached. */
-          <Link href="/budget/assign" className={styles.dashAction}>
-            <span className={styles.dashNumber}>
-              {formatCents(summary.toAssignCents)}
-            </span>
-            {/* Terse on purpose: the bar directly below breaks the paycheck
-                down, and repeating the bills figure here said it twice. */}
-            <span className={styles.dashLabel}>to assign &rarr;</span>
-          </Link>
         ) : summary.safeToSpendPerDayCents === null ? (
           <>
             <p className={styles.dashNumber}>
@@ -188,9 +207,11 @@ export default async function Page() {
         )}
 
         {/* Sits directly under the headline because it qualifies it: the
-            headline is a rate (or, before anything is assigned, a balance),
-            and this is the pool it comes out of. Pay period, not month --
-            see the component. */}
+            headline is a rate, and this is the pool it comes out of. While
+            the headline is still holding at $--.-- this bar is the only
+            figure up here, which is the point -- it says what she has
+            without pretending to a daily number she has not made yet. Pay
+            period, not month -- see the component. */}
         <SpendableBar
           period={data.period}
           inEnvelopesCents={summary.spendableRemainingCents}
@@ -220,6 +241,30 @@ export default async function Page() {
           </div>
         </dl>
       </section>
+
+      {/* Splitting the check happens HERE, inline, below the headline -- not
+          behind a link that made the first thing she saw an errand. It is the
+          same component `/budget/assign` mounts; there is one implementation
+          of the drag rule and it is in `lib/budget/redistribute.ts`.
+
+          Folded away once she has already split something, so the dashboard
+          goes back to being her daily number rather than a form. */}
+      {canSplit && (
+        <SplitSliders
+          payPeriodId={data.period.id}
+          rows={rows}
+          fixed={fixed}
+          initialCents={initialCents}
+          incomeCents={summary.incomeCents}
+          billsTotalCents={billsTotalCents}
+          daysRemaining={summary.daysRemaining}
+          targets={data.targets}
+          heading="Split this check"
+          intro="Drag each one to where you want it. Nothing here is decided until you save."
+          saveLabel="Save this split"
+          collapsible={summary.hasSpendable}
+        />
+      )}
 
       <section className={setup.section}>
         <div className={setup.sectionHead}>

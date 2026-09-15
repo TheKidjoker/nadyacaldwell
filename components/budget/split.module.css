@@ -1,0 +1,440 @@
+/* ------------------------------------------------------------------ *
+ * Splitting a paycheck with a thumb.
+ *
+ * Every colour below is a custom property from app/globals.css. Nightfall is
+ * a dark design rather than a dark mode, so there is deliberately no
+ * prefers-color-scheme branch in this file — only a reduced-motion one.
+ *
+ * The rule that shapes it: while she is dragging, ONLY the thumb, the track
+ * fill, the derived text and the bucket bar widths may change. Nothing
+ * re-orders, nothing resizes, every block that can be empty reserves its
+ * height, and every number is tabular so the digits do not shuffle under each
+ * other while the value runs.
+ * ------------------------------------------------------------------ */
+
+.section {
+  margin-top: clamp(1.75rem, 5vh, 2.75rem);
+  /* Mounted inside the dashboard's centred column as well as the assign
+   * page's; this is a form, and a centred form is unreadable. */
+  text-align: left;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.intro {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+/* The dashboard, once she has already split a check: the whole thing folds
+ * away behind one control so the daily number stays the page. */
+.reopen {
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.55rem 0.95rem;
+  border: 1px solid var(--night-line);
+  border-radius: 0.7rem;
+  background: none;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition:
+    border-color 180ms var(--ease-soft),
+    color 180ms var(--ease-soft);
+}
+
+.reopen:hover {
+  border-color: var(--blue-light);
+  color: var(--ink);
+}
+
+/* ---------- The live summary ---------- */
+
+/* The two numbers she is steering by, directly above the sliders that change
+ * them. NOT sticky: `html, body { overflow-x: hidden }` in globals.css makes
+ * body compute `overflow-y: auto`, so body becomes the nearest scroll
+ * container while `html` is what actually scrolls — and a sticky element in a
+ * container that never scrolls never sticks. Proximity does the same job with
+ * nothing to go wrong. */
+.summary {
+  margin-top: 0.9rem;
+  padding: 0.85rem 1rem 0.9rem;
+  border: 1px solid var(--night-line);
+  border-radius: 0.85rem;
+  background: var(--night);
+  box-shadow: 0 6px 20px rgb(2 8 16 / 0.55);
+}
+
+.summaryLabel {
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.summaryValue,
+.summaryValueOver {
+  margin-top: 0.15rem;
+  font-size: clamp(1.9rem, 9vw, 2.4rem);
+  font-weight: 200;
+  line-height: 1.05;
+  /* Tabular, and with NO transition: this figure runs continuously under her
+   * thumb, and an animated number is an unreadable number. */
+  font-variant-numeric: tabular-nums;
+}
+
+.summaryValue {
+  color: var(--ink);
+}
+
+/* Over-assigned is never carried by colour alone: the label above this number
+ * reads "Over-assigned" and the line below says it again in words. */
+.summaryValueOver {
+  color: var(--over);
+}
+
+.summaryPerDay {
+  /* Reserved whether or not there is a figure, so the card does not resize
+   * under her thumb the moment the first envelope gets money. */
+  min-height: 2.6rem;
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  line-height: 1.3;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.summaryPerDayValue {
+  color: var(--blue-light);
+  font-weight: 500;
+}
+
+.summaryOverNote {
+  color: var(--over);
+}
+
+/* ---------- One envelope ---------- */
+
+.rows {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+}
+
+.row {
+  display: grid;
+  /* minmax(0, 1fr) rather than 1fr: a long category name in a bare 1fr column
+   * refuses to shrink and pushes the row wider than the phone. */
+  grid-template-columns: minmax(0, 1fr) 7.25rem;
+  column-gap: 0.75rem;
+  align-items: center;
+  padding: 0.6rem 0.85rem 0.7rem;
+  border: 1px solid var(--night-line);
+  border-radius: 0.7rem;
+  background: var(--night);
+}
+
+.rowName {
+  grid-column: 1;
+  grid-row: 1;
+  font-size: 0.95rem;
+  color: var(--ink);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rowField {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.currency {
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+}
+
+.amountInput {
+  min-height: 2.75rem;
+  width: 100%;
+  padding: 0.5rem 0.5rem;
+  font: inherit;
+  /* 1rem exactly = 16px. iOS zooms the whole page when a focused field is
+   * under 16px, which would throw the slider she is working out from under
+   * her thumb. Never drop this below 1rem to win horizontal space. */
+  font-size: 1rem;
+  text-align: right;
+  border-radius: 0.5rem;
+  border: 1px solid var(--ink-faint);
+  /* Deeper than the row it sits on, so the field reads as a well. */
+  background: var(--night-deep);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  min-width: 0;
+}
+
+.amountInput::placeholder {
+  /* --ink-faint would drop the hint to ~3:1; --ink-soft holds 5.5:1. */
+  color: var(--ink-soft);
+  opacity: 1;
+}
+
+.rowMeta {
+  grid-column: 1;
+  grid-row: 3;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Said in words, on the row it happened to. A thumb that silently refuses to
+ * move reads as a broken app; this says which rule stopped it. */
+.blocked {
+  grid-column: 1 / -1;
+  grid-row: 4;
+  margin-top: 0.5rem;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: var(--over);
+}
+
+/* ---------- The slider itself ---------- */
+
+/*
+ * A NATIVE range input, styled. Not a pointer-event handler: the browser
+ * already has touch capture, the arrow keys, Page Up/Down, Home/End, the
+ * focus ring and the screen-reader announcement, correct on iOS and Android.
+ *
+ * The three things that make it feel right on a phone are all here:
+ *   - 44px of touchable band. A range input begins its drag from anywhere on
+ *     itself, so the whole height is the target even though the thumb draws
+ *     at 28px.
+ *   - touch-action: none, on the slider ALONE. A drag is a drag, never a
+ *     page scroll; everything else on the page still scrolls normally.
+ *   - no selection, no long-press callout, no tap highlight, so a slow drag
+ *     never turns into a text selection or a context menu.
+ */
+.slider {
+  /* --fill is set inline, per row, from the value. It is ALSO defaulted here:
+   * a custom property that resolves to nothing takes the whole declaration
+   * down with it, silently, and the track would simply not paint. */
+  --fill: 0%;
+  -webkit-appearance: none;
+  appearance: none;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  width: 100%;
+  height: 44px;
+  margin: 0.2rem 0 0.15rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-runnable-track {
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--blue-mid) 0 var(--fill, 0%),
+    var(--night-line) var(--fill, 0%) 100%
+  );
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  /* (10px track - 28px thumb) / 2, so the thumb sits centred on the track. */
+  margin-top: -9px;
+  border-radius: 50%;
+  background: var(--blue-light);
+  /* The ring is the page ground, so the thumb reads as lifted off the track
+   * rather than as a blob sitting on it. */
+  border: 3px solid var(--night-deep);
+  box-shadow: 0 2px 8px rgb(2 8 16 / 0.65);
+}
+
+.slider::-moz-range-track {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--night-line);
+}
+
+.slider::-moz-range-progress {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--blue-mid);
+}
+
+.slider::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--blue-light);
+  border: 3px solid var(--night-deep);
+  box-shadow: 0 2px 8px rgb(2 8 16 / 0.65);
+}
+
+/* Inset, not the 4px-offset ring from globals: the band is full width, and an
+ * outline outside it would be clipped by `html { overflow-x: hidden }`. Kept
+ * on the INPUT rather than the thumb pseudo-element so the indicator cannot
+ * vanish if a browser declines to style the thumb. */
+.slider:focus-visible {
+  outline: 2px solid var(--blue-light);
+  outline-offset: -4px;
+  border-radius: 0.5rem;
+}
+
+/* ---------- Pin ---------- */
+
+/* Pinned and unpinned differ in WORD and in SHAPE — "Pin"/"Pinned", and the
+ * lock's shackle closing. The colour shift only reinforces it. */
+.pin,
+.pinOn {
+  grid-column: 2;
+  grid-row: 3;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  /* The 44px floor, in both directions: this is tapped with a thumb. */
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 0.6rem;
+  border: 1px solid var(--night-line);
+  border-radius: 0.5rem;
+  background: var(--night-deep);
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.78rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    border-color 180ms var(--ease-soft),
+    color 180ms var(--ease-soft);
+}
+
+.pin:hover,
+.pinOn:hover {
+  border-color: var(--blue-mid);
+  color: var(--ink);
+}
+
+.pinOn {
+  border-color: var(--blue-light);
+  color: var(--ink);
+}
+
+/* ---------- The rule, stated once ---------- */
+
+.hint {
+  margin-top: 0.7rem;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+/* ---------- Actions ---------- */
+
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.submit {
+  min-height: 2.75rem;
+  padding: 0.6rem 1.5rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--blue-light);
+  color: var(--night-deep);
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 180ms var(--ease-soft);
+}
+
+.submit:hover {
+  background: var(--blue-mid);
+}
+
+.submit:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.status {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+.error {
+  margin-top: 0.6rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--over);
+}
+
+/* ---------- The 50/30/20 lens ---------- */
+
+.lens {
+  margin-top: 1.75rem;
+}
+
+.lensTitle {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* A reading, not a verdict. Two lines reserved so the bars below never jump
+ * when the sentence changes under her thumb. */
+.lensNote {
+  min-height: 2.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reopen,
+  .pin,
+  .pinOn,
+  .submit {
+    transition: none;
+  }
+}

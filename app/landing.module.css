@@ -218,26 +218,10 @@
   color: var(--ink);
 }
 
-/* The headline becomes a door when there is something behind it. It keeps the
- * headline's exact shape -- no pill, no shrink -- so the dashboard reads the
- * same and simply becomes tappable. The whole block is the target, which is
- * far past the 44px floor on its own. */
-.dashAction {
-  display: block;
-  padding: 0.25rem 0;
-  border-radius: 0.75rem;
-  color: inherit;
-  text-decoration: none;
-}
-
-.dashAction .dashNumber,
-.dashAction .dashLabel {
-  display: block;
-}
-
-.dashAction:hover .dashLabel {
-  color: var(--blue-light);
-}
+/* The headline is never a door any more. It was a link reading "$704.92 to
+ * assign ->", which made the first thing this page said to her a chore with an
+ * arrow on it. Splitting the check now happens inline below, so the hero only
+ * ever holds a number: her daily one, or $--.-- waiting to become it. */
 
 .stats {
   display: grid;
@@ -364,8 +348,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .goalChip,
-  .dashLink,
-  .dashAction .dashLabel {
+  .dashLink {
     transition: none;
   }
 }
